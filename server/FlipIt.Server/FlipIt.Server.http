@@ -1,0 +1,6 @@
+@FlipIt.Server_HostAddress = http://localhost:5199
+
+GET {{FlipIt.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
