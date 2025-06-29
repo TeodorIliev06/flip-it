@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlipIt.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bc3d4ae04eab83468ef39e3315b449a44e2da83e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+61db3ddcdb644609f35c6e6982d81fb33341ff7e")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlipIt.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlipIt.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

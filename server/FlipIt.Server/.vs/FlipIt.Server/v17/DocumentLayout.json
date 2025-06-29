@@ -7,8 +7,8 @@
       "RelativeMoniker": "D:0:0:{88589599-40F4-48F3-B5AE-1E3BD024D1A3}|FlipIt.Server.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{88589599-40F4-48F3-B5AE-1E3BD024D1A3}|FlipIt.Server.csproj|d:\\repositories\\flip-it\\server\\flipit.server\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{88589599-40F4-48F3-B5AE-1E3BD024D1A3}|FlipIt.Server.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{88589599-40F4-48F3-B5AE-1E3BD024D1A3}|FlipIt.Server.csproj|d:\\repositories\\flip-it\\server\\flipit.server\\data\\flipitdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{88589599-40F4-48F3-B5AE-1E3BD024D1A3}|FlipIt.Server.csproj|solutionrelative:data\\flipitdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -23,14 +23,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "appsettings.Development.json",
-              "DocumentMoniker": "D:\\Repositories\\flip-it\\server\\FlipIt.Server\\appsettings.Development.json",
-              "RelativeDocumentMoniker": "appsettings.Development.json",
-              "ToolTip": "D:\\Repositories\\flip-it\\server\\FlipIt.Server\\appsettings.Development.json",
-              "RelativeToolTip": "appsettings.Development.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-06-28T18:05:49.163Z",
+              "Title": "FlipItDbContext.cs",
+              "DocumentMoniker": "D:\\Repositories\\flip-it\\server\\FlipIt.Server\\Data\\FlipItDbContext.cs",
+              "RelativeDocumentMoniker": "Data\\FlipItDbContext.cs",
+              "ToolTip": "D:\\Repositories\\flip-it\\server\\FlipIt.Server\\Data\\FlipItDbContext.cs",
+              "RelativeToolTip": "Data\\FlipItDbContext.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-29T10:25:51.726Z",
               "EditorCaption": ""
             },
             {
@@ -41,7 +41,7 @@
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "D:\\Repositories\\flip-it\\server\\FlipIt.Server\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAABUAAAAAAAAAAAAAAAIAAABMAAAAAAAAAA==",
+              "ViewState": "AgIAACQAAAAAAAAAAAAAAC8AAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-28T17:58:02.711Z",
               "EditorCaption": ""
