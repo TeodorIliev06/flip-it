@@ -1,19 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 
-type GameBoardProps = {
-  moves: number;
-  setMoves: React.Dispatch<React.SetStateAction<number>>;
-  setGameOver: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import Card from "./Card";
 
-const GameBoard: React.FC<GameBoardProps> = () => {
-  // TODO: Card rendering and logic here
+import type { Card as CardType } from "./gameTypes";
+
+const initialDeck: CardType[] = [
+  { id: "1", value: "🍎", isFlipped: false, isMatched: false },
+  { id: "2", value: "🍎", isFlipped: false, isMatched: false },
+  { id: "3", value: "🍌", isFlipped: false, isMatched: false },
+  { id: "4", value: "🍌", isFlipped: false, isMatched: false },
+];
+
+const GameBoard: React.FC = () => {
+  const [cards, setCards] = useState<CardType[]>(initialDeck);
+
+  const handleCardClick = (idx: number) => {
+    setCards((prev) =>
+      prev.map((card, i) =>
+        i === idx ? { ...card, isFlipped: true } : card
+      )
+    );
+  };
+
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {/* Render Card components here */}
-      <div className="w-24 h-32 bg-white rounded shadow flex items-center justify-center">
-        Card
-      </div>
+    <div className="grid grid-cols-4 gap-8 w-full max-w-4xl px-4">
+      {cards.map((card, idx) => (
+        <Card key={card.id} card={card} onClick={() => handleCardClick(idx)} />
+      ))}
     </div>
   );
 };

@@ -1,7 +1,5 @@
 import GamePage from "./features/game/GamePage";
 
-import "./App.css";
-
 function App() {
   return (
     <>
