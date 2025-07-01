@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useRef } from "react";
+
+import { motion } from "framer-motion";
+
 import type { Card as CardType } from "./gameTypes";
+
+import "./game.css";
 
 type CardProps = {
   card: CardType;
@@ -7,17 +12,42 @@ type CardProps = {
 };
 
 const Card: React.FC<CardProps> = ({ card, onClick }) => {
+  const flipSound = useRef(new Audio("/sounds/flip.wav"));
+
+  const handleClick = () => {
+    if (card.isFlipped || card.isMatched) {
+      return;
+    }
+
+    flipSound.current.currentTime = 0;
+    flipSound.current.play();
+    onClick();
+  };
+
   return (
-    <button
-      className={`aspect-square w-full min-w-[80px] sm:min-w-[120px] md:min-w-[140px] lg:min-w-[160px] bg-blue-500 rounded shadow flex items-center justify-center text-4xl font-bold transition-transform duration-300
-        ${card.isFlipped || card.isMatched ? "bg-white" : "bg-blue-500"}
-        ${card.isMatched ? "opacity-50" : ""}
-      `}
-      onClick={onClick}
-      disabled={card.isFlipped || card.isMatched}
-    >
-      <span>{card.isFlipped || card.isMatched ? card.value : "?"}</span>
-    </button>
+    <div className="perspective aspect-square w-full min-w-[100px] max-w-[160px]">
+      <motion.div
+        className="relative w-full h-full"
+        style={{ transformStyle: "preserve-3d" }}
+        animate={{ rotateY: card.isFlipped || card.isMatched ? 180 : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        tabIndex={0}
+        aria-label={
+          card.isFlipped || card.isMatched ? card.value : "Hidden card"
+        }
+        onClick={handleClick}
+      >
+        {/* Front */}
+        <div className="absolute w-full h-full backface-hidden bg-blue-500 rounded"></div>
+        {/* Back */}
+        <div
+          className="absolute w-full h-full backface-hidden bg-white rounded flex items-center justify-center text-4xl font-bold"
+          style={{ transform: "rotateY(180deg)" }}
+        >
+          {card.value}
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

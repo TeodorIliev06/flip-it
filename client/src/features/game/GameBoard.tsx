@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 import Card from "./Card";
 import { useGameLogic } from "./useGameLogic";
 
 import type { Card as CardType } from "./gameTypes";
+
+import "./game.css";
 
 const symbols = ["🍎", "🍌", "🍇", "🍉"];
 const initialDeck: CardType[] = symbols
@@ -17,7 +19,20 @@ const initialDeck: CardType[] = symbols
   .sort(() => Math.random() - 0.5);
 
 const GameBoard: React.FC = () => {
-  const { cards, handleCardClick, gameOver, reset } = useGameLogic(initialDeck);
+  const winSound = useRef(new Audio("/sounds/win.wav"));
+  const failSound = useRef(new Audio("/sounds/fail.mp3"));
+
+  const { cards, handleCardClick, gameOver, reset } = useGameLogic(
+    initialDeck,
+    failSound
+  );
+
+  useEffect(() => {
+    if (cards.length > 0 && cards.every((card) => card.isMatched)) {
+      winSound.current.currentTime = 0;
+      winSound.current.play();
+    }
+  }, [cards]);
 
   return (
     <div className="flex flex-col items-center">
