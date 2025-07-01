@@ -1,32 +1,43 @@
-import React, { useState } from "react";
+import React from "react";
 
 import Card from "./Card";
+import { useGameLogic } from "./useGameLogic";
 
 import type { Card as CardType } from "./gameTypes";
 
-const initialDeck: CardType[] = [
-  { id: "1", value: "🍎", isFlipped: false, isMatched: false },
-  { id: "2", value: "🍎", isFlipped: false, isMatched: false },
-  { id: "3", value: "🍌", isFlipped: false, isMatched: false },
-  { id: "4", value: "🍌", isFlipped: false, isMatched: false },
-];
+const symbols = ["🍎", "🍌", "🍇", "🍉"];
+const initialDeck: CardType[] = symbols
+  .concat(symbols)
+  .map((value, idx) => ({
+    id: `${value}-${idx}`,
+    value,
+    isFlipped: false,
+    isMatched: false,
+  }))
+  .sort(() => Math.random() - 0.5);
 
 const GameBoard: React.FC = () => {
-  const [cards, setCards] = useState<CardType[]>(initialDeck);
-
-  const handleCardClick = (idx: number) => {
-    setCards((prev) =>
-      prev.map((card, i) =>
-        i === idx ? { ...card, isFlipped: true } : card
-      )
-    );
-  };
+  const { cards, handleCardClick, gameOver, reset } = useGameLogic(initialDeck);
 
   return (
-    <div className="grid grid-cols-4 gap-8 w-full max-w-4xl px-4">
-      {cards.map((card, idx) => (
-        <Card key={card.id} card={card} onClick={() => handleCardClick(idx)} />
-      ))}
+    <div className="flex flex-col items-center">
+      <div className="grid grid-cols-4 gap-8 w-full max-w-4xl px-4">
+        {cards.map((card, idx) => (
+          <Card
+            key={card.id}
+            card={card}
+            onClick={() => handleCardClick(idx)}
+          />
+        ))}
+      </div>
+      {gameOver && (
+        <button
+          className="mt-6 px-4 py-2 bg-green-500 text-white rounded"
+          onClick={reset}
+        >
+          Play Again
+        </button>
+      )}
     </div>
   );
 };

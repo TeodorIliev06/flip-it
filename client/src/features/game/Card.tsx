@@ -6,10 +6,7 @@ type CardProps = {
   onClick: () => void;
 };
 
-const Card: React.FC<CardProps> = ({
-    card,
-    onClick
-}) => {
+const Card: React.FC<CardProps> = ({ card, onClick }) => {
   return (
     <button
       className={`aspect-square w-full min-w-[80px] sm:min-w-[120px] md:min-w-[140px] lg:min-w-[160px] bg-blue-500 rounded shadow flex items-center justify-center text-4xl font-bold transition-transform duration-300
@@ -19,9 +16,7 @@ const Card: React.FC<CardProps> = ({
       onClick={onClick}
       disabled={card.isFlipped || card.isMatched}
     >
-      <span>
-        {card.isFlipped || card.isMatched ? card.value : "?"}
-      </span>
+      <span>{card.isFlipped || card.isMatched ? card.value : "?"}</span>
     </button>
   );
 };
