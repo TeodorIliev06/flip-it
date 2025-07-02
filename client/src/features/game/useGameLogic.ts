@@ -11,7 +11,7 @@ export function useGameLogic(
   const [lock, setLock] = useState(false);
   const [gameOver, setGameOver] = useState(false);
 
-  const handleCardClick = (idx: number) => {
+  const flipCard = (idx: number) => {
     if (
       lock ||
       flipped.length === 2 ||
@@ -60,7 +60,7 @@ export function useGameLogic(
 
   return {
     cards,
-    handleCardClick,
+    flipCard,
     gameOver,
     reset: () => {
       setCards(initialDeck);
