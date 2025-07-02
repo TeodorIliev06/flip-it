@@ -4,7 +4,8 @@ import type { Card as CardType } from "./gameTypes";
 
 export function useGameLogic(
   initialDeck: CardType[],
-  failSoundRef?: React.RefObject<HTMLAudioElement>
+  failSoundRef?: React.RefObject<HTMLAudioElement>,
+  onMove?: () => void
 ) {
   const [cards, setCards] = useState<CardType[]>(initialDeck);
   const [flipped, setFlipped] = useState<number[]>([]);
@@ -23,6 +24,7 @@ export function useGameLogic(
     setCards((prev) =>
       prev.map((card, i) => (i === idx ? { ...card, isFlipped: true } : card))
     );
+
     setFlipped((prev) => [...prev, idx]);
   };
 
@@ -48,9 +50,13 @@ export function useGameLogic(
         });
         setFlipped([]);
         setLock(false);
+
+        if (onMove) {
+          onMove();
+        }
       }, 1000);
     }
-  }, [flipped, failSoundRef]);
+  }, [flipped, failSoundRef, onMove]);
 
   useEffect(() => {
     if (cards.length > 0 && cards.every((card) => card.isMatched)) {

@@ -25,12 +25,30 @@ const Card: React.FC<CardProps> = ({ card, onClick }) => {
   };
 
   return (
-    <div className="perspective aspect-square w-full min-w-[100px] max-w-[160px]">
+    <div
+      className={`perspective aspect-square w-full min-w-[100px] max-w-[160px] transition-transform duration-200
+        ${
+          !card.isFlipped && !card.isMatched
+            ? "hover:scale-105 hover:shadow-lg active:scale-95"
+            : ""
+        }
+      `}
+    >
       <motion.div
         className="relative w-full h-full"
         style={{ transformStyle: "preserve-3d" }}
-        animate={{ rotateY: card.isFlipped || card.isMatched ? 180 : 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        animate={{
+          rotateY: card.isFlipped || card.isMatched ? 180 : 0,
+          boxShadow: card.isMatched
+            ? "0 0 16px 4pxrgb(38, 155, 81)"
+            : "none",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 20,
+          boxShadow: { duration: 0.4 },
+        }}
         tabIndex={0}
         aria-label={
           card.isFlipped || card.isMatched ? card.value : "Hidden card"

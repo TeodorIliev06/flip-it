@@ -12,6 +12,7 @@ type GameBoardProps = {
   timerActive: boolean;
   onGameOver: () => void;
   onReset: () => void;
+  onMove: () => void;
 };
 
 const symbols = ["🍎", "🍌", "🍇", "🍉"];
@@ -30,13 +31,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
   timerActive,
   onGameOver,
   onReset,
+  onMove,
 }) => {
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
   const { cards, flipCard, gameOver, reset } = useGameLogic(
     initialDeck,
-    failSound
+    failSound,
+    onMove
   );
 
   useEffect(() => {
