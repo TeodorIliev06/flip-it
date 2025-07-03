@@ -16,15 +16,16 @@ type GameBoardProps = {
 };
 
 const symbols = ["🍎", "🍌", "🍇", "🍉"];
-const initialDeck: CardType[] = symbols
-  .concat(symbols)
-  .map((value, idx) => ({
-    id: `${value}-${idx}`,
-    value,
-    isFlipped: false,
-    isMatched: false,
-  }))
-  .sort(() => Math.random() - 0.5);
+const generateDeck = (): CardType[] =>
+  symbols
+    .concat(symbols)
+    .map((value, idx) => ({
+      id: `${value}-${idx}`,
+      value,
+      isFlipped: false,
+      isMatched: false,
+    }))
+    .sort(() => Math.random() - 0.5);
 
 const GameBoard: React.FC<GameBoardProps> = ({
   setTimerActive,
@@ -37,7 +38,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
   const { cards, flipCard, gameOver, reset } = useGameLogic(
-    initialDeck,
+    generateDeck,
     failSound,
     onMove
   );

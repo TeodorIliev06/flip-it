@@ -39,9 +39,7 @@ const Card: React.FC<CardProps> = ({ card, onClick }) => {
         style={{ transformStyle: "preserve-3d" }}
         animate={{
           rotateY: card.isFlipped || card.isMatched ? 180 : 0,
-          boxShadow: card.isMatched
-            ? "0 0 16px 4pxrgb(38, 155, 81)"
-            : "none",
+          boxShadow: card.isMatched ? "0 0 16px 4px rgb(38, 155, 81)" : "none",
         }}
         transition={{
           type: "spring",

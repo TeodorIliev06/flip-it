@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import type { Card as CardType } from "./gameTypes";
 
 export function useGameLogic(
-  initialDeck: CardType[],
+  initialDeck: () => CardType[],
   failSoundRef?: React.RefObject<HTMLAudioElement>,
   onMove?: () => void
 ) {
-  const [cards, setCards] = useState<CardType[]>(initialDeck);
+  const [cards, setCards] = useState<CardType[]>(initialDeck());
   const [flipped, setFlipped] = useState<number[]>([]);
   const [lock, setLock] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -69,7 +69,7 @@ export function useGameLogic(
     flipCard,
     gameOver,
     reset: () => {
-      setCards(initialDeck);
+      setCards(initialDeck());
       setFlipped([]);
       setLock(false);
       setGameOver(false);
