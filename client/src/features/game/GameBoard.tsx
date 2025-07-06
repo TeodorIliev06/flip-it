@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import Card from "./Card";
-import SaveScoreForm from "./SaveScoreForm";
+import SaveScoreForm from "./saveForm/SaveScoreForm";
 import { useGameLogic } from "./useGameLogic";
 
 import type { Card as CardType } from "./gameTypes";
