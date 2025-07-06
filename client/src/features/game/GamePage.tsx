@@ -38,6 +38,8 @@ const GamePage: React.FC = () => {
         onGameOver={handleGameOver}
         onReset={handleReset}
         onMove={handleMove}
+        moves={moves}
+        seconds={seconds}
       />
     </div>
   );

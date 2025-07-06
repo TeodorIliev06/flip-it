@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import Card from "./Card";
+import SaveScoreForm from "./SaveScoreForm";
 import { useGameLogic } from "./useGameLogic";
 
 import type { Card as CardType } from "./gameTypes";
@@ -13,6 +14,8 @@ type GameBoardProps = {
   onGameOver: () => void;
   onReset: () => void;
   onMove: () => void;
+  moves: number;
+  seconds: number;
 };
 
 const symbols = ["🍎", "🍌", "🍇", "🍉"];
@@ -33,6 +36,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onGameOver,
   onReset,
   onMove,
+  moves,
+  seconds,
 }) => {
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
@@ -76,15 +81,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {gameOver && (
-        <button
-          className="mt-6 px-4 py-2 bg-green-500 text-white rounded"
-          onClick={() => {
-            reset();
-            onReset();
-          }}
-        >
-          Play Again
-        </button>
+        <div className="mt-6 flex flex-col items-center gap-4">
+          <div className="flex flex-row items-center gap-4">
+            <SaveScoreForm moves={moves} seconds={seconds} />
+
+            <button
+              className="px-4 py-2 bg-green-500 text-white rounded"
+              onClick={() => {
+                reset();
+                onReset();
+              }}
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
