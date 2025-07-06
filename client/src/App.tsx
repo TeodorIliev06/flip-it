@@ -7,14 +7,28 @@ function App() {
   return (
     <>
       <div className="min-h-screen w-screen bg-gray-900">
-        <nav className="flex justify-center gap-8 py-6">
-          <Link to="/" className="text-white text-lg font-bold hover:underline">Game</Link>
-          <Link to="/leaderboard" className="text-white text-lg font-bold hover:underline">Leaderboard</Link>
+        <nav className="fixed top-0 left-0 w-full bg-gray-950 shadow-lg z-50">
+          <div className="max-w-4xl mx-auto flex justify-center gap-8 py-4 px-4">
+            <Link
+              to="/"
+              className="text-lg font-bold px-4 py-2 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-white hover:text-blue-300"
+            >
+              Game
+            </Link>
+            <Link
+              to="/leaderboard"
+              className="text-lg font-bold px-4 py-2 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-white hover:text-blue-300"
+            >
+              Leaderboard
+            </Link>
+          </div>
         </nav>
-        <Routes>
-          <Route path="/" element={<GamePage />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-        </Routes>
+        <div className="pt-16">
+          <Routes>
+            <Route path="/" element={<GamePage />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+          </Routes>
+        </div>
       </div>
     </>
   );

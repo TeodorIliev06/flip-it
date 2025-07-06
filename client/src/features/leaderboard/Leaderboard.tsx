@@ -16,7 +16,7 @@ const Leaderboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] w-full overflow-hidden">
       <h1 className="text-3xl font-bold mb-6">Leaderboard</h1>
       {loading ? (
         <div>Loading...</div>

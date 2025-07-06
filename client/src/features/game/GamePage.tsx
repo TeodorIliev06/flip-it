@@ -20,12 +20,11 @@ const GamePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-gray-900">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] w-full overflow-hidden">
       <h1 className="text-4xl font-bold mb-4 text-white drop-shadow">
         FlipIt Memory Game
       </h1>
-
-      <div className="mb-8">
+      <div className="mb-8 flex gap-4">
         <span className="inline-flex items-center px-4 py-2 rounded-full bg-gray-800 text-white text-lg font-semibold shadow">
           <span className="mr-2">⏱️</span> Time: {seconds}s
         </span>
