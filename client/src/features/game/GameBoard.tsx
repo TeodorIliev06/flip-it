@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 
 import Card from "./Card";
 import SaveScoreForm from "./saveForm/SaveScoreForm";
+import { allSymbols } from "./symbols";
 import { useGameLogic } from "./useGameLogic";
 
 import type { Card as CardType } from "./gameTypes";
@@ -19,9 +20,19 @@ type GameBoardProps = {
   difficulty: string;
 };
 
-const symbols = ["🍎", "🍌", "🍇", "🍉"];
-const generateDeck = (): CardType[] =>
-  symbols
+const difficultySettings = {
+  Easy: { rows: 2, columns: 4 },
+  Intermediate: { rows: 4, columns: 4 },
+  Hard: { rows: 5, columns: 6 },
+};
+
+const generateDeck = (difficulty: string): CardType[] => {
+  const { rows, columns } =
+    difficultySettings[difficulty as keyof typeof difficultySettings] ||
+    difficultySettings.Easy;
+  const pairs = (rows * columns) / 2;
+  const symbols = allSymbols.slice(0, pairs);
+  return symbols
     .concat(symbols)
     .map((value, idx) => ({
       id: `${value}-${idx}`,
@@ -30,6 +41,7 @@ const generateDeck = (): CardType[] =>
       isMatched: false,
     }))
     .sort(() => Math.random() - 0.5);
+};
 
 const GameBoard: React.FC<GameBoardProps> = ({
   setTimerActive,
@@ -45,10 +57,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
   const { cards, flipCard, gameOver, reset } = useGameLogic(
-    generateDeck,
+    () => generateDeck(difficulty),
     failSound,
     onMove
   );
+
+  const columns =
+    difficultySettings[difficulty as keyof typeof difficultySettings]
+      ?.columns || 4;
 
   useEffect(() => {
     if (cards.length > 0 && cards.every((card) => card.isMatched)) {
@@ -72,7 +88,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="grid grid-cols-4 gap-8 w-full max-w-4xl px-4">
+      <div
+        className={`grid ${
+          columns === 4
+            ? "grid-cols-4"
+            : columns === 6
+            ? "grid-cols-6"
+            : "grid-cols-5"
+        } gap-8 w-full max-w-4xl px-4`}
+      >
         {cards.map((card, idx) => (
           <Card
             key={card.id}
@@ -85,7 +109,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {gameOver && (
         <div className="mt-6 flex flex-col items-center gap-4">
           <div className="flex flex-row items-center gap-4">
-            <SaveScoreForm moves={moves} seconds={seconds} difficulty={difficulty} />
+            <SaveScoreForm
+              moves={moves}
+              seconds={seconds}
+              difficulty={difficulty}
+            />
 
             <button
               className="px-4 py-2 bg-green-500 text-white rounded"
