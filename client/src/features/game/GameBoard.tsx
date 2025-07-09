@@ -16,6 +16,7 @@ type GameBoardProps = {
   onMove: () => void;
   moves: number;
   seconds: number;
+  difficulty: string;
 };
 
 const symbols = ["🍎", "🍌", "🍇", "🍉"];
@@ -38,6 +39,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onMove,
   moves,
   seconds,
+  difficulty,
 }) => {
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
@@ -83,7 +85,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {gameOver && (
         <div className="mt-6 flex flex-col items-center gap-4">
           <div className="flex flex-row items-center gap-4">
-            <SaveScoreForm moves={moves} seconds={seconds} />
+            <SaveScoreForm moves={moves} seconds={seconds} difficulty={difficulty} />
 
             <button
               className="px-4 py-2 bg-green-500 text-white rounded"

@@ -7,9 +7,14 @@ import "./SaveScoreForm.css";
 interface SaveScoreFormProps {
   moves: number;
   seconds: number;
+  difficulty: string;
 }
 
-const SaveScoreForm: React.FC<SaveScoreFormProps> = ({ moves, seconds }) => {
+const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
+  moves,
+  seconds,
+  difficulty,
+}) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -21,7 +26,12 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({ moves, seconds }) => {
     setSaving(true);
     setError(null);
     try {
-      await postScore({ playerName, moves, timeInSeconds: seconds });
+      await postScore({
+        playerName,
+        moves,
+        timeInSeconds: seconds,
+        difficulty,
+      });
       setSaved(true);
       setModalOpen(false);
     } catch (err) {
