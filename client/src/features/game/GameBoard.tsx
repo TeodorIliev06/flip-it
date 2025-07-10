@@ -18,6 +18,7 @@ type GameBoardProps = {
   moves: number;
   seconds: number;
   difficulty: string;
+  mode: string;
 };
 
 const difficultySettings = {
@@ -52,6 +53,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   moves,
   seconds,
   difficulty,
+  mode,
 }) => {
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
