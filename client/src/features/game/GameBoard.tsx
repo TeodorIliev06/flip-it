@@ -4,6 +4,8 @@ import Card from "./Card";
 import SaveScoreForm from "./saveForm/SaveScoreForm";
 import { allSymbols } from "./symbols";
 import { useGameLogic } from "./useGameLogic";
+import { ClassicModeLogic } from "./modes/classic";
+import { MemoryMasterModeLogic } from "./modes/memoryMaster";
 
 import type { Card as CardType } from "./gameTypes";
 
@@ -58,10 +60,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
+  const modeLogic = mode === "memoryMaster" ? MemoryMasterModeLogic : ClassicModeLogic;
+
   const { cards, flipCard, gameOver, reset } = useGameLogic(
     () => generateDeck(difficulty),
     failSound,
-    onMove
+    onMove,
+    modeLogic
   );
 
   const columns =
