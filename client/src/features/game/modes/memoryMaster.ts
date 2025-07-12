@@ -1,10 +1,13 @@
 import type { IGameModeLogic } from "./IGameModeLogic";
 
 export const MemoryMasterModeLogic: IGameModeLogic = {
-  onGameStart: (setState) => {
-    setState((prev: any) => ({ ...prev, isMemorizing: true }));
+  onGameStart: (setCards, setIsMemorizing) => {
+    // Flip all cards up and start memorization
+    setIsMemorizing(true);
+    setCards((prev) => prev.map((c: any) => ({ ...c, isFlipped: true })));
     setTimeout(() => {
-      setState((prev: any) => ({ ...prev, isMemorizing: false }));
+      setIsMemorizing(false);
+      setCards((prev) => prev.map((c: any) => ({ ...c, isFlipped: false })));
     }, 4000); // 4 seconds to memorize
   },
   onCardFlip: ({ cards, flipped, setGameOver, setMistakeMade, setLock, failSoundRef }) => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 
 import Card from "./Card";
 import SaveScoreForm from "./saveForm/SaveScoreForm";
@@ -60,10 +60,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
+  const deckGenerator = useCallback(() => generateDeck(difficulty), [difficulty]);
   const modeLogic = mode === "memoryMaster" ? MemoryMasterModeLogic : ClassicModeLogic;
 
-  const { cards, flipCard, gameOver, reset } = useGameLogic(
-    () => generateDeck(difficulty),
+  const { cards, flipCard, gameOver, isMemorizing, reset } = useGameLogic(
+    deckGenerator,
     failSound,
     onMove,
     modeLogic
@@ -77,10 +78,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
     if (cards.length > 0 && cards.every((card) => card.isMatched)) {
       winSound.current.currentTime = 0;
       winSound.current.play();
-
       onGameOver();
     }
   }, [cards, onGameOver]);
+
+  useEffect(() => {
+    if (gameOver) {
+      setTimerActive(false);
+    }
+  }, [gameOver, setTimerActive]);
 
   const handleCardClick = (idx: number) => {
     if (
@@ -89,9 +95,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
     ) {
       setTimerActive(true);
     }
-
     flipCard(idx);
   };
+
+  const showAllFlipped = mode === "memoryMaster" && isMemorizing;
 
   return (
     <div className="flex flex-col items-center">
@@ -107,7 +114,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         {cards.map((card, idx) => (
           <Card
             key={card.id}
-            card={card}
+            card={showAllFlipped ? { ...card, isFlipped: true } : card}
             onClick={() => handleCardClick(idx)}
           />
         ))}

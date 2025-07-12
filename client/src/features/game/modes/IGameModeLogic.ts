@@ -1,5 +1,8 @@
 export interface IGameModeLogic {
-  onGameStart?: (setState: (s: any) => void) => void;
+  onGameStart?: (
+    setCards: (updater: (prev: any[]) => any[]) => void,
+    setIsMemorizing: (b: boolean) => void
+  ) => void;
 
   onCardFlip: (params: {
     cards: any[];
