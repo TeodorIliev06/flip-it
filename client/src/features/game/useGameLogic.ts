@@ -92,6 +92,7 @@ export function useGameLogic(
     gameOver,
     isMemorizing,
     mistakeMade,
+    lock,
     reset: () => {
       setCards(initialDeck());
       setFlipped([]);

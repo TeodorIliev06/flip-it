@@ -9,16 +9,16 @@ import "./game.css";
 type CardProps = {
   card: CardType;
   onClick: () => void;
+  disabled?: boolean;
 };
 
-const Card: React.FC<CardProps> = ({ card, onClick }) => {
+const Card: React.FC<CardProps> = ({ card, onClick, disabled }) => {
   const flipSound = useRef(new Audio("/sounds/flip.wav"));
 
   const handleClick = () => {
-    if (card.isFlipped || card.isMatched) {
+    if (disabled || card.isFlipped || card.isMatched) {
       return;
     }
-
     flipSound.current.currentTime = 0;
     flipSound.current.play();
     onClick();
@@ -28,10 +28,11 @@ const Card: React.FC<CardProps> = ({ card, onClick }) => {
     <div
       className={`perspective aspect-square w-full min-w-[100px] max-w-[160px] transition-transform duration-200
         ${
-          !card.isFlipped && !card.isMatched
+          !card.isFlipped && !card.isMatched && !disabled
             ? "hover:scale-105 hover:shadow-lg active:scale-95"
             : ""
         }
+        ${disabled ? "cursor-not-allowed" : ""}
       `}
     >
       <motion.div

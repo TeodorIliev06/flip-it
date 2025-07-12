@@ -60,10 +60,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
-  const deckGenerator = useCallback(() => generateDeck(difficulty), [difficulty]);
-  const modeLogic = mode === "memoryMaster" ? MemoryMasterModeLogic : ClassicModeLogic;
+  const deckGenerator = useCallback(
+    () => generateDeck(difficulty),
+    [difficulty]
+  );
+  const modeLogic =
+    mode === "memoryMaster" ? MemoryMasterModeLogic : ClassicModeLogic;
 
-  const { cards, flipCard, gameOver, isMemorizing, reset } = useGameLogic(
+  const { cards, flipCard, gameOver, isMemorizing, lock, reset } = useGameLogic(
     deckGenerator,
     failSound,
     onMove,
@@ -116,6 +120,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             key={card.id}
             card={showAllFlipped ? { ...card, isFlipped: true } : card}
             onClick={() => handleCardClick(idx)}
+            disabled={lock || gameOver}
           />
         ))}
       </div>
