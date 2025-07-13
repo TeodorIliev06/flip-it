@@ -1,4 +1,7 @@
 import React from "react";
+import { motion } from "framer-motion";
+
+import Heading from "../Heading";
 
 interface DifficultySelectorProps {
   difficulties: string[];
@@ -6,24 +9,36 @@ interface DifficultySelectorProps {
   onSelect: (difficulty: string) => void;
 }
 
-const DifficultySelector: React.FC<DifficultySelectorProps> = ({ difficulties, selectedDifficulty, onSelect }) => (
+const DifficultySelector: React.FC<DifficultySelectorProps> = ({
+  difficulties,
+  selectedDifficulty,
+  onSelect,
+}) => (
   <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] w-full overflow-hidden">
-    <h1 className="text-4xl font-bold mb-8 text-white drop-shadow">FlipIt Memory Game</h1>
-    <div className="mb-2 text-white text-xl font-bold">Select Difficulty</div>
-    <div className="flex flex-col gap-4 w-64">
-      {difficulties.map((level) => (
-        <button
-          key={level}
-          onClick={() => onSelect(level)}
-          className={`inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500
-            ${selectedDifficulty === level ? "bg-blue-600 text-white" : "bg-gray-800 text-white hover:bg-blue-500"}`}
-          style={{ minWidth: 120 }}
-        >
-          {level}
-        </button>
-      ))}
+    <Heading />
+    <div className="mb-4 text-white text-xl font-bold">Select Difficulty</div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 w-full max-w-xl px-4">
+      {difficulties.map((level) => {
+        const selected = selectedDifficulty === level;
+        return (
+          <motion.button
+            key={level}
+            whileHover={{ scale: 1.05 }}
+            onClick={() => onSelect(level)}
+            className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-colors duration-200
+              ${
+                selected
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-gray-700 bg-gray-900 text-white hover:bg-blue-500"
+              }
+              cursor-pointer min-w-[140px] min-h-[100px] text-2xl font-bold`}
+          >
+            {level}
+          </motion.button>
+        );
+      })}
     </div>
   </div>
 );
 
-export default DifficultySelector; 
+export default DifficultySelector;
