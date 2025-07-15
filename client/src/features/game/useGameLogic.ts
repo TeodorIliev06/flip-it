@@ -1,87 +1,103 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
 import type { Card as CardType } from "./gameTypes";
-import type { IGameModeLogic } from "./modes/IGameModeLogic";
+
+interface BaseGameLogicOptions {
+  onInit?: (
+    setCards: React.Dispatch<React.SetStateAction<CardType[]>>,
+    setIsMemorizing?: (b: boolean) => void
+  ) => void;
+  onReset?: (
+    setCards: React.Dispatch<React.SetStateAction<CardType[]>>,
+    setIsMemorizing?: (b: boolean) => void
+  ) => void;
+  disableFlip?: boolean;
+  isMemorizing?: boolean;
+}
 
 export function useGameLogic(
-  initialDeck: () => CardType[],
-  failSoundRef?: React.RefObject<HTMLAudioElement>,
-  onMove?: () => void,
-  modeLogic?: IGameModeLogic
+  deckGenerator: () => CardType[],
+  failSound: React.RefObject<HTMLAudioElement>,
+  onMove: () => void,
+  options: BaseGameLogicOptions = {}
 ) {
-  const [cards, setCards] = useState<CardType[]>(initialDeck());
+  const [cards, setCards] = useState<CardType[]>(deckGenerator());
   const [flipped, setFlipped] = useState<number[]>([]);
-  const [lock, setLock] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [lock, setLock] = useState(false);
   const [isMemorizing, setIsMemorizing] = useState(false);
-  const [mistakeMade, setMistakeMade] = useState(false);
+  const initialized = useRef(false);
 
-  // Reset all state when deck or mode changes
+  // Run mode-specific init logic (e.g., memorization phase)
   useEffect(() => {
-    setCards(initialDeck());
-    setFlipped([]);
-    setLock(false);
-    setGameOver(false);
-    setMistakeMade(false);
-    if (modeLogic && modeLogic.onGameStart) {
-      setIsMemorizing(true);
-      modeLogic.onGameStart(setCards, setIsMemorizing);
-    } else {
-      setIsMemorizing(false);
+    if (!initialized.current && options.onInit) {
+      options.onInit(setCards, setIsMemorizing);
+      initialized.current = true;
     }
-  }, [initialDeck, modeLogic]);
+  }, []);
 
   const flipCard = (idx: number) => {
-    if (lock || flipped.length === 2) {
+    if (
+      lock ||
+      gameOver ||
+      cards[idx].isFlipped ||
+      cards[idx].isMatched ||
+      options.disableFlip ||
+      (typeof options.isMemorizing === "boolean" && options.isMemorizing)
+    ) {
       return;
     }
-    if (cards[idx].isFlipped || cards[idx].isMatched) {
-      return;
-    }
-    if (modeLogic?.onGameStart && isMemorizing) {
-      return;
-    }
-    if (gameOver) {
-      return;
-    }
+    const newFlipped = [...flipped, idx];
+    setFlipped(newFlipped);
     setCards((prev) =>
       prev.map((card, i) => (i === idx ? { ...card, isFlipped: true } : card))
     );
-    setFlipped((prev) => [...prev, idx]);
-  };
-
-  useEffect(() => {
-    if (modeLogic && flipped.length === 2) {
-      modeLogic.onCardFlip({
-        cards,
-        flipped,
-        setGameOver,
-        setMistakeMade,
-        setLock,
-        failSoundRef,
-      });
+    if (newFlipped.length === 2) {
+      setLock(true);
       setTimeout(() => {
-        setCards((prev) => {
-          const [i, j] = flipped;
-          if (prev[i] && prev[j] && prev[i].value === prev[j].value) {
-            return prev.map((card, idx) =>
-              idx === i || idx === j ? { ...card, isMatched: true } : card
-            );
-          } else {
-            return prev.map((card, idx) =>
-              idx === i || idx === j ? { ...card, isFlipped: false } : card
-            );
+        const [i1, i2] = newFlipped;
+        if (cards[i1].value === cards[i2].value) {
+          setCards((prev) =>
+            prev.map((card, i) =>
+              i === i1 || i === i2 ? { ...card, isMatched: true } : card
+            )
+          );
+        } else {
+          if (failSound.current) {
+            failSound.current.currentTime = 0;
+            failSound.current.play();
           }
-        });
-        setFlipped([]);
-        if (onMove) {
-          onMove();
+          setCards((prev) =>
+            prev.map((card, i) =>
+              i === i1 || i === i2 ? { ...card, isFlipped: false } : card
+            )
+          );
         }
+        setFlipped([]);
+        setLock(false);
+        onMove();
       }, 1000);
     }
-  }, [flipped]);
+  };
 
+  const reset = () => {
+    setCards(deckGenerator());
+    setFlipped([]);
+    setGameOver(false);
+    setLock(false);
+    setIsMemorizing(false);
+    if (options.onReset) {
+      options.onReset(setCards, setIsMemorizing);
+    }
+  };
+
+  // Check for game over
   useEffect(() => {
-    if (modeLogic && modeLogic.isGameOver && modeLogic.isGameOver(cards)) {
+    if (
+      !gameOver &&
+      cards.length > 0 &&
+      cards.every((card) => card.isMatched)
+    ) {
       setGameOver(true);
     }
   }, [cards]);
@@ -90,16 +106,10 @@ export function useGameLogic(
     cards,
     flipCard,
     gameOver,
-    isMemorizing,
-    mistakeMade,
     lock,
-    reset: () => {
-      setCards(initialDeck());
-      setFlipped([]);
-      setLock(false);
-      setGameOver(false);
-      setMistakeMade(false);
-      setIsMemorizing(false);
-    },
+    reset,
+    isMemorizing,
+    setIsMemorizing, // for mode hooks to use if needed
+    setCards, // for mode hooks to use if needed
   };
 }

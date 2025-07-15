@@ -3,9 +3,7 @@ import React, { useEffect, useRef, useCallback } from "react";
 import Card from "./Card";
 import SaveScoreForm from "./saveForm/SaveScoreForm";
 import { allSymbols } from "./symbols";
-import { useGameLogic } from "./useGameLogic";
-import { ClassicModeLogic } from "./modes/classic";
-import { MemoryMasterModeLogic } from "./modes/memoryMaster";
+import { useGameModeLogic } from "./useGameModeLogic";
 
 import type { Card as CardType } from "./gameTypes";
 
@@ -64,15 +62,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
     () => generateDeck(difficulty),
     [difficulty]
   );
-  const modeLogic =
-    mode === "memoryMaster" ? MemoryMasterModeLogic : ClassicModeLogic;
 
-  const { cards, flipCard, gameOver, isMemorizing, lock, reset } = useGameLogic(
-    deckGenerator,
-    failSound,
-    onMove,
-    modeLogic
-  );
+  // Use the new mode selector hook
+  const { cards, flipCard, gameOver, isMemorizing, lock, reset } =
+    useGameModeLogic(mode, deckGenerator, failSound, onMove);
 
   const columns =
     difficultySettings[difficulty as keyof typeof difficultySettings]

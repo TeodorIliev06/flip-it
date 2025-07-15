@@ -1,32 +1,40 @@
+import { useGameLogic } from "../useGameLogic";
+import type { Card as CardType } from "../gameTypes";
 import type { IGameModeLogic } from "./IGameModeLogic";
 
-export const MemoryMasterModeLogic: IGameModeLogic = {
-  onGameStart: (setCards, setIsMemorizing) => {
-    // Flip all cards up and start memorization
+export function useMemoryMasterGameLogic(
+  deckGenerator: () => CardType[],
+  failSound: React.RefObject<HTMLAudioElement>,
+  onMove: () => void
+): IGameModeLogic {
+  // Memorization phase logic
+  const MEMORIZE_TIME = 2000;
+  const onInit = (
+    setCards: React.Dispatch<React.SetStateAction<CardType[]>>,
+    setIsMemorizing?: (b: boolean) => void
+  ) => {
+    if (!setIsMemorizing) return;
     setIsMemorizing(true);
-    setCards((prev) => prev.map((c: any) => ({ ...c, isFlipped: true })));
+    setCards((prev: CardType[]) =>
+      prev.map((card: CardType) => ({ ...card, isFlipped: true }))
+    );
     setTimeout(() => {
+      setCards((prev: CardType[]) =>
+        prev.map((card: CardType) => ({ ...card, isFlipped: false }))
+      );
       setIsMemorizing(false);
-      setCards((prev) => prev.map((c: any) => ({ ...c, isFlipped: false })));
-    }, 4000); // 4 seconds to memorize
-  },
-  onCardFlip: ({ cards, flipped, setGameOver, setMistakeMade, setLock, failSoundRef }) => {
-    if (flipped.length === 2) {
-      setLock(true);
-      const [i, j] = flipped;
-      setTimeout(() => {
-        if (cards[i].value === cards[j].value) {
-        } else {
-          if (failSoundRef && failSoundRef.current) {
-            failSoundRef.current.currentTime = 0;
-            failSoundRef.current.play();
-          }
-          setMistakeMade && setMistakeMade(true);
-          setGameOver(true);
-        }
-        setLock(false);
-      }, 1000);
-    }
-  },
-  isGameOver: (cards) => cards.length > 0 && cards.every((card: any) => card.isMatched),
-}; 
+    }, MEMORIZE_TIME);
+  };
+  const onReset = onInit;
+
+  const base = useGameLogic(deckGenerator, failSound, onMove, {
+    onInit,
+    onReset,
+    isMemorizing: undefined, // will be set from base
+  });
+
+  return {
+    ...base,
+    isMemorizing: base.isMemorizing,
+  };
+}
