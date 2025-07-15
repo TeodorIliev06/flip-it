@@ -19,6 +19,7 @@ type GameBoardProps = {
   seconds: number;
   difficulty: string;
   mode: string;
+  onTimeLeftChange?: (timeLeft: number) => void;
 };
 
 const difficultySettings = {
@@ -54,6 +55,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   seconds,
   difficulty,
   mode,
+  onTimeLeftChange,
 }) => {
   const winSound = useRef(new Audio("/sounds/win.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
@@ -64,8 +66,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
   );
 
   // Use the new mode selector hook
-  const { cards, flipCard, gameOver, isMemorizing, lock, reset } =
-    useGameModeLogic(mode, deckGenerator, failSound, onMove);
+  const { cards, flipCard, gameOver, isMemorizing, lock, reset, timeLeft } =
+    useGameModeLogic(mode, deckGenerator, failSound, onMove, onGameOver);
+
+  // Notify parent of timeLeft changes in Timed mode
+  useEffect(() => {
+    if (mode === "timed" && typeof timeLeft === "number" && onTimeLeftChange) {
+      onTimeLeftChange(timeLeft);
+    }
+  }, [timeLeft, mode, onTimeLeftChange]);
 
   const columns =
     difficultySettings[difficulty as keyof typeof difficultySettings]

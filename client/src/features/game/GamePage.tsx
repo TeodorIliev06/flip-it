@@ -20,6 +20,13 @@ const GAME_MODES = [
     description: "Memorize the board, then match all pairs without a single mistake!",
     icon: "🧠",
     supportsDifficulty: false,
+  },
+  {
+    key: "timed",
+    name: "Timed",
+    description: "Match all pairs in the allocated time.",
+    icon: "⏰",
+    supportsDifficulty: false,
   }
 ];
 
@@ -31,6 +38,7 @@ const GamePage: React.FC = () => {
   const [moves, setMoves] = useState(0);
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   const seconds = useTimer(timerActive, resetSignal);
 
@@ -88,7 +96,7 @@ const GamePage: React.FC = () => {
       <h1 className="text-4xl font-bold mb-4 text-white drop-shadow">FlipIt Memory Game</h1>
       <div className="mb-8 flex gap-4">
         <span className="inline-flex items-center px-4 py-2 rounded-full bg-gray-800 text-white text-lg font-semibold shadow">
-          <span className="mr-2">⏱️</span> Time: {seconds}s
+          <span className="mr-2">⏱️</span> Time: {selectedMode === "timed" && timeLeft !== null ? timeLeft : seconds}s
         </span>
         <span className="inline-flex items-center px-4 py-2 rounded-full bg-gray-800 text-white text-lg font-semibold shadow">
           <span className="mr-2">🎯</span> Moves: {moves}
@@ -109,6 +117,7 @@ const GamePage: React.FC = () => {
         seconds={seconds}
         difficulty={selectedDifficulty || "Easy"}
         mode={selectedMode}
+        onTimeLeftChange={setTimeLeft}
       />
     </div>
   );
