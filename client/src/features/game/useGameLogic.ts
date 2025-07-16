@@ -109,7 +109,8 @@ export function useGameLogic(
     lock,
     reset,
     isMemorizing,
-    setIsMemorizing, // for mode hooks to use if needed
-    setCards, // for mode hooks to use if needed
+    setIsMemorizing, // expose for mode hooks
+    setCards, // expose for mode hooks
+    setGameOver, // expose for mode hooks
   };
 }

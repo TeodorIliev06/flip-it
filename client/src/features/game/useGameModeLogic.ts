@@ -14,11 +14,22 @@ export function useGameModeLogic(
 ): IGameModeLogic & { timeLeft?: number } {
   switch (mode) {
     case "memoryMaster":
-      return useMemoryMasterGameLogic(deckGenerator, failSound, onMove);
+      return useMemoryMasterGameLogic(
+        deckGenerator,
+        failSound,
+        onMove,
+        onGameOver
+      );
     case "timed":
-      return useTimedGameLogic(deckGenerator, failSound, onMove, onGameOver!, timeLimit);
+      return useTimedGameLogic(
+        deckGenerator,
+        failSound,
+        onMove,
+        onGameOver!,
+        timeLimit
+      );
     case "classic":
     default:
       return useClassicGameLogic(deckGenerator, failSound, onMove);
   }
-} 
+}
