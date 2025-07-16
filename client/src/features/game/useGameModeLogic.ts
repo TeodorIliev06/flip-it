@@ -1,8 +1,11 @@
+import { useTimedGameLogic } from "./modes/timed";
 import { useClassicGameLogic } from "./modes/classic";
 import { useMemoryMasterGameLogic } from "./modes/memoryMaster";
-import { useTimedGameLogic } from "./modes/timed";
-import type { IGameModeLogic } from "./modes/IGameModeLogic";
+
 import type { Card as CardType } from "./gameTypes";
+import type { IGameModeLogic } from "./modes/IGameModeLogic";
+
+import { DEFAULT_TIME_LIMIT } from "./constants";
 
 export function useGameModeLogic(
   mode: string,
@@ -10,7 +13,7 @@ export function useGameModeLogic(
   failSound: React.RefObject<HTMLAudioElement>,
   onMove: () => void,
   onGameOver?: () => void,
-  timeLimit: number = 60
+  timeLimit: number = DEFAULT_TIME_LIMIT
 ): IGameModeLogic & { timeLeft?: number } {
   switch (mode) {
     case "memoryMaster":

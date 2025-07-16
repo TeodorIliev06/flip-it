@@ -5,6 +5,8 @@ import { useGameLogic } from "../useGameLogic";
 import type { Card as CardType } from "../gameTypes";
 import type { IGameModeLogic } from "./IGameModeLogic";
 
+import { MEMORIZE_TIME } from "../constants";
+
 export function useMemoryMasterGameLogic(
   deckGenerator: () => CardType[],
   failSound: React.RefObject<HTMLAudioElement>,
@@ -12,9 +14,7 @@ export function useMemoryMasterGameLogic(
   onGameOver?: () => void
 ): IGameModeLogic {
   // Memorization phase logic
-  const MEMORIZE_TIME = 2000;
   const [mistakeMade, setMistakeMade] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
 
   const onInit = (
     setCards: React.Dispatch<React.SetStateAction<CardType[]>>,
@@ -55,7 +55,6 @@ export function useMemoryMasterGameLogic(
       if (first.value !== second.value) {
         setMistakeMade(true);
         setTimeout(() => {
-          setGameOver(true);
           base.setGameOver(true);
           if (onGameOver) onGameOver();
         }, 1000);
@@ -66,7 +65,6 @@ export function useMemoryMasterGameLogic(
   // Reset mistakeMade and gameOver on reset
   useEffect(() => {
     setMistakeMade(false);
-    setGameOver(false);
   }, [deckGenerator]);
 
   return {
