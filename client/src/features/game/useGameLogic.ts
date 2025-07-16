@@ -17,8 +17,8 @@ interface BaseGameLogicOptions {
 
 export function useGameLogic(
   deckGenerator: () => CardType[],
-  failSound: React.RefObject<HTMLAudioElement>,
   onMove: () => void,
+  failSound?: React.RefObject<HTMLAudioElement> | null,
   options: BaseGameLogicOptions = {}
 ) {
   const [cards, setCards] = useState<CardType[]>(deckGenerator());
@@ -63,7 +63,7 @@ export function useGameLogic(
             )
           );
         } else {
-          if (failSound.current) {
+          if (failSound && failSound.current) {
             failSound.current.currentTime = 0;
             failSound.current.play();
           }

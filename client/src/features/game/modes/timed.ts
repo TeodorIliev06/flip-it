@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 export function useTimedGameLogic(
   deckGenerator: () => CardType[],
   failSound: React.RefObject<HTMLAudioElement>,
+  loseSound: React.RefObject<HTMLAudioElement>,
   onMove: () => void,
   onGameOver: () => void,
   timeLimit: number
@@ -17,13 +18,17 @@ export function useTimedGameLogic(
 
   const initialTimeLimit = useRef(timeLimit);
 
-  const base = useGameLogic(deckGenerator, failSound, onMove);
+  const base = useGameLogic(deckGenerator, onMove, failSound);
 
   const handleTimeout = useCallback(() => {
+    if (loseSound.current) {
+      loseSound.current.currentTime = 0;
+      loseSound.current.play();
+    }
     base.setGameOver(true);
     setCountdownActive(false);
     onGameOver();
-  }, [onGameOver, base]);
+  }, [onGameOver, base, loseSound]);
 
   const timeLeft = useCountdown(
     countdownActive,

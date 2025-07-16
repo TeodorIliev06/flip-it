@@ -11,6 +11,7 @@ export function useGameModeLogic(
   mode: string,
   deckGenerator: () => CardType[],
   failSound: React.RefObject<HTMLAudioElement>,
+  loseSound: React.RefObject<HTMLAudioElement>,
   onMove: () => void,
   onGameOver?: () => void,
   timeLimit: number = DEFAULT_TIME_LIMIT
@@ -19,7 +20,7 @@ export function useGameModeLogic(
     case "memoryMaster":
       return useMemoryMasterGameLogic(
         deckGenerator,
-        failSound,
+        loseSound,
         onMove,
         onGameOver
       );
@@ -27,6 +28,7 @@ export function useGameModeLogic(
       return useTimedGameLogic(
         deckGenerator,
         failSound,
+        loseSound,
         onMove,
         onGameOver!,
         timeLimit

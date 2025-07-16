@@ -58,6 +58,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onTimeLeftChange,
 }) => {
   const winSound = useRef(new Audio("/sounds/win.wav"));
+  const loseSound = useRef(new Audio("/sounds/lose.wav"));
   const failSound = useRef(new Audio("/sounds/fail.mp3"));
 
   const deckGenerator = useCallback(
@@ -67,7 +68,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   // Use the new mode selector hook
   const { cards, flipCard, gameOver, isMemorizing, lock, reset, timeLeft } =
-    useGameModeLogic(mode, deckGenerator, failSound, onMove, onGameOver);
+    useGameModeLogic(mode, deckGenerator, failSound, loseSound, onMove, onGameOver);
 
   // Notify parent of timeLeft changes in Timed mode
   useEffect(() => {

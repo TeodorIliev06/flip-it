@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { useGameLogic } from "../useGameLogic";
 
@@ -9,12 +9,14 @@ import { MEMORIZE_TIME } from "../constants";
 
 export function useMemoryMasterGameLogic(
   deckGenerator: () => CardType[],
-  failSound: React.RefObject<HTMLAudioElement>,
+  loseSound: React.RefObject<HTMLAudioElement>,
   onMove: () => void,
   onGameOver?: () => void
 ): IGameModeLogic {
   // Memorization phase logic
   const [mistakeMade, setMistakeMade] = useState(false);
+
+  const loseSoundPlayed = useRef(false);
 
   const onInit = (
     setCards: React.Dispatch<React.SetStateAction<CardType[]>>,
@@ -34,7 +36,7 @@ export function useMemoryMasterGameLogic(
   };
   const onReset = onInit;
 
-  const base = useGameLogic(deckGenerator, failSound, onMove, {
+  const base = useGameLogic(deckGenerator, onMove, null, {
     onInit,
     onReset,
     isMemorizing: undefined, // will be set from base
@@ -49,22 +51,35 @@ export function useMemoryMasterGameLogic(
   };
 
   useEffect(() => {
+    if (base.gameOver) {
+      loseSoundPlayed.current = false;
+      return;
+    }
     const flippedCards = base.cards.filter((c) => c.isFlipped && !c.isMatched);
-    if (flippedCards.length === 2) {
-      const [first, second] = flippedCards;
-      if (first.value !== second.value) {
-        setMistakeMade(true);
-        setTimeout(() => {
-          base.setGameOver(true);
-          if (onGameOver) onGameOver();
-        }, 1000);
+    if (
+      flippedCards.length === 2 &&
+      flippedCards[0].value !== flippedCards[1].value &&
+      !loseSoundPlayed.current
+    ) {
+      setMistakeMade(true);
+
+      if (loseSound.current) {
+        loseSound.current.currentTime = 0;
+        loseSound.current.play();
+      }
+
+      loseSoundPlayed.current = true;
+      base.setGameOver(true);
+
+      if (onGameOver) {
+        onGameOver();
       }
     }
-  }, [base.cards, base, onGameOver]);
+  }, [base.cards, base, onGameOver, loseSound]);
 
-  // Reset mistakeMade and gameOver on reset
   useEffect(() => {
     setMistakeMade(false);
+    loseSoundPlayed.current = false;
   }, [deckGenerator]);
 
   return {
