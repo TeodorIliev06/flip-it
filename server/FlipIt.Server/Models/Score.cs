@@ -8,4 +8,5 @@ public class Score
     public int TimeInSeconds { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Difficulty { get; set; } = "Easy";
+    public string GameMode { get; set; } = "Classic";
 }

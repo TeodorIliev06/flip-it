@@ -61,7 +61,8 @@ app.MapPost("/score", async (CreateScoreRequest request, FlipItDbContext db) =>
         PlayerName = request.PlayerName,
         Moves = request.Moves,
         TimeInSeconds = request.TimeInSeconds,
-        Difficulty = request.Difficulty
+        Difficulty = request.Difficulty,
+        GameMode = request.GameMode
     };
 
     db.Scores.Add(score);
@@ -73,18 +74,27 @@ app.MapPost("/score", async (CreateScoreRequest request, FlipItDbContext db) =>
         score.Moves,
         score.TimeInSeconds,
         score.CreatedAt,
-        score.Difficulty
+        score.Difficulty,
+        score.GameMode
     );
 
     return Results.Created($"/score/{score.Id}", response);
 });
 
-app.MapGet("/leaderboard", async (FlipItDbContext db, string? difficulty = null, int limit = 10) =>
+app.MapGet("/leaderboard", async (FlipItDbContext db,
+    string? difficulty = null, string? gameMode = null, int limit = 10) =>
 {
     var query = db.Scores.AsQueryable();
 
     if (!string.IsNullOrEmpty(difficulty))
+    {
         query = query.Where(s => s.Difficulty == difficulty);
+    }
+
+    if (!string.IsNullOrEmpty(gameMode))
+    {
+        query = query.Where(s => s.GameMode == gameMode);
+    }
 
     var topScores = await query
         .OrderBy(s => s.Moves)
@@ -96,7 +106,8 @@ app.MapGet("/leaderboard", async (FlipItDbContext db, string? difficulty = null,
             s.Moves,
             s.TimeInSeconds,
             s.CreatedAt,
-            s.Difficulty
+            s.Difficulty,
+            s.GameMode
         ))
         .ToListAsync();
 

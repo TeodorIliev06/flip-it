@@ -4,7 +4,8 @@ public record CreateScoreRequest(
     string PlayerName,
     int Moves,
     int TimeInSeconds,
-    string Difficulty = "Easy"
+    string Difficulty = "Easy",
+    string GameMode = "Classic"
 );
 
 public record ScoreResponse(
@@ -13,7 +14,8 @@ public record ScoreResponse(
     int Moves,
     int TimeInSeconds,
     DateTime CreatedAt,
-    string Difficulty
+    string Difficulty,
+    string GameMode
 );
 
 public record LeaderboardResponse(
