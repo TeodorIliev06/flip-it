@@ -8,5 +8,5 @@ export function useClassicGameLogic(
   failSound: React.RefObject<HTMLAudioElement>,
   onMove: () => void
 ): IGameModeLogic {
-  return useGameLogic(deckGenerator, failSound, onMove);
+  return useGameLogic(deckGenerator, onMove, failSound);
 }
