@@ -5,3 +5,7 @@
 .backface-hidden {
   backface-visibility: hidden;
 }
+
+.filter-btn {
+  padding: 0.5rem 0.25rem !important;
+}
