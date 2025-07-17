@@ -4,23 +4,30 @@ import React, { useEffect, useState } from "react";
 import { fetchLeaderboard } from "./leaderboardApi";
 import type { ScoreResponse } from "./leaderboardTypes";
 
+import { GAME_MODES, GAME_MODE_KEYS } from "../game/constants";
+
 const rowVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
 };
 
+const modeButtonBaseClass =
+  "flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-colors duration-200 cursor-pointer min-w-[140px] min-h-[100px] text-2xl font-bold";
+
 const Leaderboard: React.FC = () => {
   const [scores, setScores] = useState<ScoreResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMode, setSelectedMode] = useState<string>(GAME_MODES[0].key);
 
   useEffect(() => {
-    fetchLeaderboard()
+    setLoading(true);
+    fetchLeaderboard(selectedMode)
       .then((data) => {
         setScores(data.topScores);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [selectedMode]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] w-full overflow-hidden bg-slate-900">
@@ -38,6 +45,26 @@ const Leaderboard: React.FC = () => {
         >
           Leaderboard
         </motion.h1>
+        <div className="flex justify-center mb-8 gap-4">
+          {GAME_MODES.map((mode) => {
+            const selected = selectedMode === mode.key;
+            return (
+              <motion.button
+                key={mode.key}
+                whileHover={{ scale: 1.05 }}
+                onClick={() => setSelectedMode(mode.key)}
+                className={
+                  modeButtonBaseClass +
+                  (selected
+                    ? " border-blue-600 bg-blue-600 text-white"
+                    : " border-gray-700 bg-gray-900 text-white hover:bg-blue-500")
+                }
+              >
+                {mode.name}
+              </motion.button>
+            );
+          })}
+        </div>
         {loading ? (
           <div className="text-white text-center py-8">Loading...</div>
         ) : (
@@ -54,9 +81,11 @@ const Leaderboard: React.FC = () => {
                   Moves
                 </th>
                 <th className="px-4 py-3 text-lg font-bold text-white">Time</th>
-                <th className="px-4 py-3 text-lg font-bold text-white">
-                  Difficulty
-                </th>
+                {selectedMode === GAME_MODE_KEYS.CLASSIC && (
+                  <th className="px-4 py-3 text-lg font-bold text-white">
+                    Difficulty
+                  </th>
+                )}
               </tr>
             </thead>
             <motion.tbody
@@ -70,9 +99,7 @@ const Leaderboard: React.FC = () => {
                 <motion.tr
                   key={score.id}
                   variants={rowVariants}
-                  whileHover={{
-                    scale: 1.01,
-                  }}
+                  whileHover={{ scale: 1.01 }}
                   className={`transition-all duration-200 ${
                     idx === 0
                       ? "bg-gradient-to-r from-yellow-400/30 to-yellow-200/10"
@@ -95,9 +122,11 @@ const Leaderboard: React.FC = () => {
                   <td className="px-4 py-3 text-white text-center">
                     {score.timeInSeconds}s
                   </td>
-                  <td className="px-4 py-3 text-white text-center">
-                    {score.difficulty}
-                  </td>
+                  {selectedMode === GAME_MODE_KEYS.CLASSIC && (
+                    <td className="px-4 py-3 text-white text-center">
+                      {score.difficulty}
+                    </td>
+                  )}
                 </motion.tr>
               ))}
             </motion.tbody>

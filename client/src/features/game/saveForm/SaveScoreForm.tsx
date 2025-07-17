@@ -8,12 +8,14 @@ interface SaveScoreFormProps {
   moves: number;
   seconds: number;
   difficulty: string;
+  gameMode: string;
 }
 
 const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
   moves,
   seconds,
   difficulty,
+  gameMode,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [playerName, setPlayerName] = useState("");
@@ -31,6 +33,7 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
         moves,
         timeInSeconds: seconds,
         difficulty,
+        gameMode,
       });
       setSaved(true);
       setModalOpen(false);

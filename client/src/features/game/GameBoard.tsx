@@ -7,8 +7,9 @@ import { useGameModeLogic } from "./useGameModeLogic";
 
 import type { Card as CardType } from "./gameTypes";
 
-import "./game.css";
 import { GAME_MODE_KEYS } from "./constants";
+
+import "./game.css";
 
 type GameBoardProps = {
   setTimerActive: React.Dispatch<React.SetStateAction<boolean>>;
@@ -69,7 +70,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   // Use the new mode selector hook
   const { cards, flipCard, gameOver, isMemorizing, lock, reset, timeLeft } =
-    useGameModeLogic(mode, deckGenerator, failSound, loseSound, onMove, onGameOver);
+    useGameModeLogic(
+      mode,
+      deckGenerator,
+      failSound,
+      loseSound,
+      onMove,
+      onGameOver
+    );
 
   // Notify parent of timeLeft changes in Timed mode
   useEffect(() => {
@@ -140,6 +148,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               moves={moves}
               seconds={seconds}
               difficulty={difficulty}
+              gameMode={mode}
             />
 
             <button
