@@ -8,6 +8,7 @@ import { useGameModeLogic } from "./useGameModeLogic";
 import type { Card as CardType } from "./gameTypes";
 
 import "./game.css";
+import { GAME_MODE_KEYS } from "./constants";
 
 type GameBoardProps = {
   setTimerActive: React.Dispatch<React.SetStateAction<boolean>>;
@@ -72,7 +73,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   // Notify parent of timeLeft changes in Timed mode
   useEffect(() => {
-    if (mode === "timed" && typeof timeLeft === "number" && onTimeLeftChange) {
+    if (
+      mode === GAME_MODE_KEYS.TIMED &&
+      typeof timeLeft === "number" &&
+      onTimeLeftChange
+    ) {
       onTimeLeftChange(timeLeft);
     }
   }, [timeLeft, mode, onTimeLeftChange]);

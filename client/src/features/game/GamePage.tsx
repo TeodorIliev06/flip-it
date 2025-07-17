@@ -6,29 +6,7 @@ import DifficultySelector from "./selectors/DifficultySelector";
 
 import { useTimer } from "../../shared/hooks/useTimer";
 
-const GAME_MODES = [
-  {
-    key: "classic",
-    name: "Classic",
-    description: "Match all pairs in as few moves as possible.",
-    icon: "🃏",
-    supportsDifficulty: true,
-  },
-  {
-    key: "memoryMaster",
-    name: "Memory Master",
-    description: "Memorize the board, then match all pairs without a single mistake!",
-    icon: "🧠",
-    supportsDifficulty: false,
-  },
-  {
-    key: "timed",
-    name: "Timed",
-    description: "Match all pairs in the allocated time.",
-    icon: "⏰",
-    supportsDifficulty: false,
-  }
-];
+import { GAME_MODES, GAME_MODE_KEYS } from "./constants";
 
 const difficulties = ["Easy", "Intermediate", "Hard"];
 
@@ -85,7 +63,7 @@ const GamePage: React.FC = () => {
   }
 
   let pillLabel = "";
-  if (currentMode?.key === "classic" && selectedDifficulty) {
+  if (currentMode?.key === GAME_MODE_KEYS.CLASSIC && selectedDifficulty) {
     pillLabel = selectedDifficulty;
   } else if (currentMode) {
     pillLabel = currentMode.name;
@@ -96,7 +74,7 @@ const GamePage: React.FC = () => {
       <h1 className="text-4xl font-bold mb-4 text-white drop-shadow">FlipIt Memory Game</h1>
       <div className="mb-8 flex gap-4">
         <span className="inline-flex items-center px-4 py-2 rounded-full bg-gray-800 text-white text-lg font-semibold shadow">
-          <span className="mr-2">⏱️</span> Time: {selectedMode === "timed" && timeLeft !== null ? timeLeft : seconds}s
+          <span className="mr-2">⏱️</span> Time: {selectedMode === GAME_MODE_KEYS.TIMED && timeLeft !== null ? timeLeft : seconds}s
         </span>
         <span className="inline-flex items-center px-4 py-2 rounded-full bg-gray-800 text-white text-lg font-semibold shadow">
           <span className="mr-2">🎯</span> Moves: {moves}
