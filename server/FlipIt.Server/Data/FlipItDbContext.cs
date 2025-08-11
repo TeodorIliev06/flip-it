@@ -11,6 +11,7 @@ public class FlipItDbContext : DbContext
     }
 
     public DbSet<Score> Scores { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,23 @@ public class FlipItDbContext : DbContext
             entity.Property(e => e.Difficulty)
                 .IsRequired()
                 .HasMaxLength(20);
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Scores)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.HasIndex(e => e.Email)
+                .IsUnique();
+            entity.Property(e => e.PasswordHash)
+                .IsRequired();
         });
     }
 }
