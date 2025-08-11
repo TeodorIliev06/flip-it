@@ -7,5 +7,3 @@ public interface ITokenService
     (string token, DateTime expiresAt) CreateAccessToken(User user);
     (string token, DateTime expiresAt) CreateRefreshToken();
 }
-
-

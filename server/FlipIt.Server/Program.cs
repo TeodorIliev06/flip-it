@@ -1,12 +1,21 @@
+using System.Text;
+using System.Security.Claims;
+using System.Security.Cryptography;
+
 using Microsoft.EntityFrameworkCore;
 
 using FlipIt.Server.Data;
 using FlipIt.Server.DTOs;
 using FlipIt.Server.Models;
+using FlipIt.Server.Options;
+using FlipIt.Server.Services;
+using FlipIt.Server.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var appOrigin = builder.Configuration.GetValue<string>("ClientOrigins:FlipIt");
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -34,6 +43,9 @@ builder.Services.AddCors(cfg =>
     }
 });
 
+builder.Services.AddJwtAuthentication(jwtOptions);
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -47,7 +59,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider
         .GetRequiredService<FlipItDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 
 app.UseCors("AllowClient");
@@ -55,6 +67,8 @@ app.UseCors("AllowClient");
 app.UseHttpsRedirection();
 
 app.MapPost("/score", async (CreateScoreRequest request, FlipItDbContext db) =>
+app.UseAuthentication();
+app.UseAuthorization();
 {
     var score = new Score
     {
