@@ -2,8 +2,10 @@ import { Routes, Route, Link } from "react-router-dom";
 
 import GamePage from "./features/game/GamePage";
 import Leaderboard from "./features/leaderboard/Leaderboard";
+import { useAuth } from "./features/auth/AuthProvider";
 
 function App() {
+  const { user, logout } = useAuth();
   return (
     <>
       <div className="min-h-screen w-screen bg-gray-900">

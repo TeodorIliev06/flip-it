@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import { useAuth } from "../../auth/AuthProvider";
 import { postScore } from "../../leaderboard/leaderboardApi";
 
 import "./SaveScoreForm.css";
@@ -17,6 +18,8 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
   difficulty,
   gameMode,
 }) => {
+  const { accessToken } = useAuth();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,6 +37,7 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
         timeInSeconds: seconds,
         difficulty,
         gameMode,
+        accessToken,
       });
       setSaved(true);
       setModalOpen(false);
