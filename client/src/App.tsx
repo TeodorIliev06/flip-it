@@ -10,19 +10,36 @@ function App() {
     <>
       <div className="min-h-screen w-screen bg-gray-900">
         <nav className="fixed top-0 left-0 w-full bg-gray-950 shadow-lg z-50">
-          <div className="max-w-4xl mx-auto flex justify-center gap-8 py-4 px-4">
-            <Link
-              to="/"
-              className="text-lg font-bold px-4 py-2 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-white hover:text-blue-300"
-            >
-              Game
-            </Link>
-            <Link
-              to="/leaderboard"
-              className="text-lg font-bold px-4 py-2 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-white hover:text-blue-300"
-            >
-              Leaderboard
-            </Link>
+          <div className="max-w-4xl mx-auto flex justify-between items-center py-4 px-4 text-white">
+            <div className="flex gap-6">
+              <Link
+                to="/"
+                className="text-lg font-bold px-4 py-2 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:text-blue-300"
+              >
+                Game
+              </Link>
+              <Link
+                to="/leaderboard"
+                className="text-lg font-bold px-4 py-2 rounded transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 hover:text-blue-300"
+              >
+                Leaderboard
+              </Link>
+            </div>
+            <div className="flex gap-4 items-center">
+              {user ? (
+                <>
+                  <span className="text-sm text-gray-300">{user.email}</span>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-1 bg-gray-800 rounded hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <span className="text-sm text-gray-400">Guest</span>
+              )}
+            </div>
           </div>
         </nav>
         <div className="pt-16">
