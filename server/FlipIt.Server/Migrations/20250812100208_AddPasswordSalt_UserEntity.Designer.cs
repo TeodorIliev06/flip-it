@@ -3,6 +3,7 @@ using System;
 using FlipIt.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlipIt.Server.Migrations
 {
     [DbContext(typeof(FlipItDbContext))]
-    partial class FlipItDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250812100208_AddPasswordSalt_UserEntity")]
+    partial class AddPasswordSalt_UserEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.12");
