@@ -1,7 +1,6 @@
-using System.Text;
 using System.Security.Claims;
-using System.Security.Cryptography;
 
+using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
 using FlipIt.Server.Data;
@@ -45,6 +44,7 @@ builder.Services.AddCors(cfg =>
 
 builder.Services.AddJwtAuthentication(jwtOptions);
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
 var app = builder.Build();
 
@@ -66,9 +66,128 @@ app.UseCors("AllowClient");
 
 app.UseHttpsRedirection();
 
-app.MapPost("/score", async (CreateScoreRequest request, FlipItDbContext db) =>
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapPost("/auth/register",
+    async (RegisterRequest request, FlipItDbContext db, IPasswordHasher passwordHasher) =>
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        if (await db.Users.AnyAsync(u => u.Email == email))
+        {
+            return Results.Conflict("Email already registered");
+        }
+
+        var (hash, salt) = passwordHasher.HashPassword(request.Password);
+        var user = new User
+        {
+            Email = email,
+            PasswordSalt = salt,
+            PasswordHash = hash
+        };
+
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        return Results.Created($"/users/{user.Id}", new { user.Id, user.Email });
+    }).WithTags("Auth");
+
+app.MapPost("/auth/login", async (LoginRequest request, FlipItDbContext db, HttpResponse http, ITokenService tokenService, IOptions<JwtOptions> jwtOptions, IPasswordHasher passwordHasher) =>
+{
+    var email = request.Email.Trim().ToLowerInvariant();
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    if (!passwordHasher.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
+    {
+        return Results.Unauthorized();
+    }
+
+    var (accessToken, expiryTime) = tokenService.CreateAccessToken(user);
+
+    var (refreshToken, refreshExpiryTime) = tokenService.CreateRefreshToken();
+    user.RefreshToken = refreshToken;
+    user.RefreshTokenExpiresAt = refreshExpiryTime;
+
+    await db.SaveChangesAsync();
+
+    var response = new AuthResponse(user.Id, user.Email, accessToken, expiryTime);
+    var cookieOptions = new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = jwtOptions.Value.CookieSecure,
+        SameSite = SameSiteMode.None,
+        Expires = user.RefreshTokenExpiresAt
+    };
+
+    http.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
+    return Results.Ok(response);
+}).WithTags("Auth");
+
+app.MapPost("/auth/refresh", async (HttpRequest http, FlipItDbContext db, ITokenService tokenService) =>
+{
+    if (!http.Cookies.TryGetValue("refreshToken", out var refreshToken))
+    {
+        return Results.Unauthorized();
+    }
+
+    var user = await db.Users
+        .FirstOrDefaultAsync(u =>
+            u.RefreshToken == refreshToken &&
+            u.RefreshTokenExpiresAt > DateTime.UtcNow);
+
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var (accessToken, expiryTime) = tokenService.CreateAccessToken(user);
+
+    return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, expiryTime));
+}).WithTags("Auth");
+
+app.MapPost("/auth/logout", async (HttpResponse http, FlipItDbContext db, ClaimsPrincipal userPrincipal) =>
+{
+    var userIdStr = userPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (int.TryParse(userIdStr, out var userId))
+    {
+        var user = await db.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.RefreshToken = null;
+            user.RefreshTokenExpiresAt = null;
+            await db.SaveChangesAsync();
+        }
+    }
+    http.Cookies.Delete("refreshToken", new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None
+    });
+    return Results.Ok();
+}).WithTags("Auth");
+
+app.MapGet("/me", (ClaimsPrincipal user) =>
+{
+    if (user.Identity?.IsAuthenticated == true)
+    {
+        return Results.Ok(new
+        {
+            UserId = user.FindFirstValue(ClaimTypes.NameIdentifier),
+            Email = user.FindFirstValue(ClaimTypes.Email)
+        });
+    }
+
+    return Results.Unauthorized();
+}).RequireAuthorization();
+
+app.MapPost("/score", async (CreateScoreRequest request, FlipItDbContext db, ClaimsPrincipal userPrincipal) =>
 {
     var score = new Score
     {
@@ -76,7 +195,11 @@ app.UseAuthorization();
         Moves = request.Moves,
         TimeInSeconds = request.TimeInSeconds,
         Difficulty = request.Difficulty,
-        GameMode = request.GameMode
+        GameMode = request.GameMode,
+        UserId = int.TryParse(userPrincipal
+            .FindFirstValue(ClaimTypes.NameIdentifier), out var uid)
+            ? uid
+            : null
     };
 
     db.Scores.Add(score);
@@ -93,7 +216,7 @@ app.UseAuthorization();
     );
 
     return Results.Created($"/score/{score.Id}", response);
-});
+}).AllowAnonymous();
 
 app.MapGet("/leaderboard", async (FlipItDbContext db,
     string? difficulty = null, string? gameMode = null, int limit = 10) =>

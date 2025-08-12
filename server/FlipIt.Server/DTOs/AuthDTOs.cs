@@ -7,5 +7,5 @@ public record AuthResponse(
     int UserId,
     string Email,
     string AccessToken,
-    DateTime ExpirtyTime
+    DateTime ExpiryTime
 );
