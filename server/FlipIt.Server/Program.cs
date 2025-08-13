@@ -1,5 +1,6 @@
 using System.Security.Claims;
 
+using Google.Apis.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
@@ -149,6 +150,75 @@ app.MapPost("/auth/refresh", async (HttpRequest http, FlipItDbContext db, IToken
     var (accessToken, expiryTime) = tokenService.CreateAccessToken(user);
 
     return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, expiryTime));
+}).WithTags("Auth");
+
+app.MapPost("/auth/google", async (
+    FlipItDbContext db,
+    ITokenService tokenService,
+    IOptions<JwtOptions> jwtOptions,
+    HttpResponse http,
+    IConfiguration config,
+    dynamic body) =>
+{
+    string idToken = (string)(body?.idToken ?? "");
+    if (string.IsNullOrWhiteSpace(idToken))
+    {
+        return Results.BadRequest("Missing idToken");
+    }
+
+    var clientId = config.GetValue<string>("Google:ClientId");
+    if (string.IsNullOrWhiteSpace(clientId))
+    {
+        return Results.Problem("Server Google ClientId is not configured");
+    }
+
+    GoogleJsonWebSignature.Payload payload;
+    try
+    {
+        payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
+        {
+            Audience = new[] { clientId }
+        });
+    }
+    catch
+    {
+        return Results.Unauthorized();
+    }
+
+    var email = (payload.Email ?? string.Empty).Trim().ToLowerInvariant();
+    if (string.IsNullOrEmpty(email))
+    {
+        return Results.Unauthorized();
+    }
+
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+    if (user == null)
+    {
+        user = new User
+        {
+            Email = email,
+            PasswordHash = string.Empty,
+            PasswordSalt = string.Empty
+        };
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+    }
+
+    var (accessToken, accessExpires) = tokenService.CreateAccessToken(user);
+    var (refreshToken, refreshExpires) = tokenService.CreateRefreshToken();
+    user.RefreshToken = refreshToken;
+    user.RefreshTokenExpiresAt = refreshExpires;
+    await db.SaveChangesAsync();
+
+    http.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = jwtOptions.Value.CookieSecure,
+        SameSite = SameSiteMode.None,
+        Expires = refreshExpires
+    });
+
+    return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
 }).WithTags("Auth");
 
 app.MapPost("/auth/logout", async (HttpResponse http, FlipItDbContext db, ClaimsPrincipal userPrincipal) =>
