@@ -11,6 +11,7 @@ import {
   register as apiRegister,
   refresh as apiRefresh,
   logout as apiLogout,
+  loginWithGoogle,
   type AuthResponse,
 } from "./authApi";
 
@@ -22,6 +23,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -50,15 +52,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     applyAuthResponse(res);
   }, []);
 
+  const googleLogin = useCallback(async (idToken: string) => {
+    const res = await loginWithGoogle(idToken);
+    applyAuthResponse(res);
+  }, []);
+
   const logout = useCallback(async () => {
     await apiLogout();
-    
+
     setUser(null);
     setAccessToken(null);
   }, []);
 
   useEffect(() => {
-    // Try to refresh on load (if refresh cookie exists)
+    const hasRefreshCookie = document.cookie.includes("refreshToken=");
+    if (!hasRefreshCookie) return;
+
     apiRefresh()
       .then(applyAuthResponse)
       .catch(() => {
@@ -68,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const value = useMemo(
-    () => ({ user, accessToken, login, register, logout }),
+    () => ({ user, accessToken, login, register, logout, googleLogin }),
     [user, accessToken, login, register, logout]
   );
 

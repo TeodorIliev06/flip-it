@@ -43,6 +43,21 @@ export async function login(
   return res.json();
 }
 
+export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
+  const res = await fetch(`${BASE_URL}/auth/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Google sign-in failed");
+  }
+
+  return res.json();
+}
+
 export async function refresh(): Promise<AuthResponse> {
   const res = await fetch(`${BASE_URL}/auth/refresh`, {
     method: "POST",
