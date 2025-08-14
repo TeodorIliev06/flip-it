@@ -65,6 +65,18 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowClient");
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("Content-Security-Policy",
+        "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; " +
+        "frame-src 'self' https://accounts.google.com; " +
+        "connect-src 'self' https://accounts.google.com https://localhost:7299");
+
+    context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+
+    await next();
+});
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
