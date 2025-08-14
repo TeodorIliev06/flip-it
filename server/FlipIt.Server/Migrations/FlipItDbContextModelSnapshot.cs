@@ -53,7 +53,7 @@ namespace FlipIt.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Scores");
+                    b.ToTable("Scores", (string)null);
                 });
 
             modelBuilder.Entity("FlipIt.Server.Models.User", b =>
@@ -89,7 +89,7 @@ namespace FlipIt.Server.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("FlipIt.Server.Models.Score", b =>

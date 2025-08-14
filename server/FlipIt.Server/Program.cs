@@ -49,6 +49,17 @@ builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    // CSP for Google Identity Services
+    context.Response.Headers.Append("Content-Security-Policy",
+        "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; " +
+        "frame-src 'self' https://accounts.google.com; " +
+        "connect-src 'self' https://accounts.google.com https://localhost:7299");
+
+    await next();
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -64,18 +75,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseCors("AllowClient");
-
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Append("Content-Security-Policy",
-        "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; " +
-        "frame-src 'self' https://accounts.google.com; " +
-        "connect-src 'self' https://accounts.google.com https://localhost:7299");
-
-    context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-
-    await next();
-});
 
 app.UseHttpsRedirection();
 
@@ -165,72 +164,92 @@ app.MapPost("/auth/refresh", async (HttpRequest http, FlipItDbContext db, IToken
 }).WithTags("Auth");
 
 app.MapPost("/auth/google", async (
+    GoogleAuthRequest request,
     FlipItDbContext db,
     ITokenService tokenService,
     IOptions<JwtOptions> jwtOptions,
     HttpResponse http,
-    IConfiguration config,
-    dynamic body) =>
+    IConfiguration config) =>
 {
-    string idToken = (string)(body?.idToken ?? "");
-    if (string.IsNullOrWhiteSpace(idToken))
-    {
-        return Results.BadRequest("Missing idToken");
-    }
-
-    var clientId = config.GetValue<string>("Google:ClientId");
-    if (string.IsNullOrWhiteSpace(clientId))
-    {
-        return Results.Problem("Server Google ClientId is not configured");
-    }
-
-    GoogleJsonWebSignature.Payload payload;
     try
     {
-        payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
-        {
-            Audience = new[] { clientId }
-        });
-    }
-    catch
-    {
-        return Results.Unauthorized();
-    }
+        Console.WriteLine("Google auth endpoint called");
 
-    var email = (payload.Email ?? string.Empty).Trim().ToLowerInvariant();
-    if (string.IsNullOrEmpty(email))
-    {
-        return Results.Unauthorized();
-    }
-
-    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
-    if (user == null)
-    {
-        user = new User
+        if (string.IsNullOrWhiteSpace(request.IdToken))
         {
-            Email = email,
-            PasswordHash = string.Empty,
-            PasswordSalt = string.Empty
-        };
-        db.Users.Add(user);
+            Console.WriteLine("Missing idToken");
+            return Results.BadRequest("Missing idToken");
+        }
+
+        var clientId = config.GetValue<string>("Google:ClientId");
+        Console.WriteLine($"Client ID from config: {clientId}");
+
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            Console.WriteLine("Server Google ClientId is not configured");
+            return Results.Problem("Server Google ClientId is not configured");
+        }
+
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            Console.WriteLine("Validating Google token...");
+            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { clientId }
+            });
+            Console.WriteLine($"Token validated for email: {payload.Email}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Google token validation failed: {ex.Message}");
+            return Results.Unauthorized();
+        }
+
+        var email = (payload.Email ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(email))
+        {
+            Console.WriteLine("No email in token payload");
+            return Results.Unauthorized();
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            Console.WriteLine($"Creating new user for email: {email}");
+            user = new User
+            {
+                Email = email,
+                PasswordHash = string.Empty,
+                PasswordSalt = string.Empty
+            };
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+        }
+
+        var (accessToken, accessExpires) = tokenService.CreateAccessToken(user);
+        var (refreshToken, refreshExpires) = tokenService.CreateRefreshToken();
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiresAt = refreshExpires;
         await db.SaveChangesAsync();
+
+        http.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = jwtOptions.Value.CookieSecure,
+            SameSite = SameSiteMode.None,
+            Expires = refreshExpires
+        });
+
+        Console.WriteLine($"Google auth successful for user: {user.Email}");
+
+        return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
     }
-
-    var (accessToken, accessExpires) = tokenService.CreateAccessToken(user);
-    var (refreshToken, refreshExpires) = tokenService.CreateRefreshToken();
-    user.RefreshToken = refreshToken;
-    user.RefreshTokenExpiresAt = refreshExpires;
-    await db.SaveChangesAsync();
-
-    http.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+    catch (Exception e)
     {
-        HttpOnly = true,
-        Secure = jwtOptions.Value.CookieSecure,
-        SameSite = SameSiteMode.None,
-        Expires = refreshExpires
-    });
-
-    return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
+        Console.WriteLine(e.ToString());
+        throw;
+    }
 }).WithTags("Auth");
 
 app.MapPost("/auth/logout", async (HttpResponse http, FlipItDbContext db, ClaimsPrincipal userPrincipal) =>
