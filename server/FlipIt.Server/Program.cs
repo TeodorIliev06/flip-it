@@ -173,32 +173,25 @@ app.MapPost("/auth/google", async (
 {
     try
     {
-        Console.WriteLine("Google auth endpoint called");
-
         if (string.IsNullOrWhiteSpace(request.IdToken))
         {
-            Console.WriteLine("Missing idToken");
             return Results.BadRequest("Missing idToken");
         }
 
         var clientId = config.GetValue<string>("Google:ClientId");
-        Console.WriteLine($"Client ID from config: {clientId}");
 
         if (string.IsNullOrWhiteSpace(clientId))
         {
-            Console.WriteLine("Server Google ClientId is not configured");
             return Results.Problem("Server Google ClientId is not configured");
         }
 
         GoogleJsonWebSignature.Payload payload;
         try
         {
-            Console.WriteLine("Validating Google token...");
             payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
             {
                 Audience = new[] { clientId }
             });
-            Console.WriteLine($"Token validated for email: {payload.Email}");
         }
         catch (Exception ex)
         {
@@ -216,7 +209,6 @@ app.MapPost("/auth/google", async (
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
         {
-            Console.WriteLine($"Creating new user for email: {email}");
             user = new User
             {
                 Email = email,
@@ -240,8 +232,6 @@ app.MapPost("/auth/google", async (
             SameSite = SameSiteMode.None,
             Expires = refreshExpires
         });
-
-        Console.WriteLine($"Google auth successful for user: {user.Email}");
 
         return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
     }

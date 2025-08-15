@@ -29,25 +29,23 @@ const AuthModal: React.FC<AuthModalProps> = ({
     if (!isOpen) return;
 
     const initializeAndRender = () => {
-      console.log('Script loaded, checking Google object...');
       // @ts-ignore
       const google = window.google?.accounts?.id;
-      console.log('Google object:', google);
       if (!google) {
-        console.log('Google accounts.id not available');
+        console.log("Google accounts.id not available");
         return;
       }
+
       if (!clientId) {
         console.warn("VITE_GOOGLE_CLIENT_ID is not set");
         return;
       }
-      console.log('Initializing with client ID:', clientId);
+
       try {
         // @ts-ignore
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: async (resp: any) => {
-            console.log('Google callback received:', resp);
             try {
               await googleLogin(resp.credential);
               onClose();
@@ -57,7 +55,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
             }
           },
         });
-        console.log('Google initialized, rendering button...');
+
         if (googleBtnRef.current) {
           // @ts-ignore
           window.google.accounts.id.renderButton(googleBtnRef.current, {
@@ -66,16 +64,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
             shape: "rectangular",
             width: 320,
           });
-          console.log('Button rendered');
         } else {
-          console.log('Button container not found');
+          console.log("Button container not found");
         }
       } catch (e) {
         console.error("Failed to initialize Google Identity Services", e);
       }
     };
 
-    // If script is already present, just render
     // @ts-ignore
     if (window.google?.accounts?.id) {
       initializeAndRender();
@@ -86,7 +82,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
     const existing = document.getElementById("google-gsi");
     if (existing) {
       existing.addEventListener("load", initializeAndRender, { once: true });
-      return () => existing.removeEventListener("load", initializeAndRender as any);
+      return () =>
+        existing.removeEventListener("load", initializeAndRender as any);
     }
 
     const script = document.createElement("script");
@@ -163,7 +160,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
             Missing VITE_GOOGLE_CLIENT_ID env var
           </div>
         )}
-        <div id="google-btn" ref={googleBtnRef as any} style={{ marginBottom: 16 }} />
+        <div
+          id="google-btn"
+          ref={googleBtnRef as any}
+          style={{ marginBottom: 16 }}
+        />
 
         <div className="auth-modal-divider">
           <span>or</span>
