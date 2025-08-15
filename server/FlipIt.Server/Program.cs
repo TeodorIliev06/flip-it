@@ -51,11 +51,11 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
-    // CSP for Google Identity Services
+    // CSP for Google Identity Services and GitHub OAuth
     context.Response.Headers.Append("Content-Security-Policy",
         "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; " +
         "frame-src 'self' https://accounts.google.com; " +
-        "connect-src 'self' https://accounts.google.com https://localhost:7299");
+        "connect-src 'self' https://accounts.google.com https://api.github.com https://github.com https://localhost:7299");
 
     await next();
 });

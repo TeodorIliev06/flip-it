@@ -11,7 +11,7 @@ export default defineConfig({
       "Content-Security-Policy":
         "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; " +
         "frame-src 'self' https://accounts.google.com; " +
-        "connect-src 'self' https://accounts.google.com https://localhost:7299",
+        "connect-src 'self' https://accounts.google.com https://api.github.com https://github.com https://localhost:7299",
       "Referrer-Policy": "no-referrer-when-downgrade",
     },
   },
