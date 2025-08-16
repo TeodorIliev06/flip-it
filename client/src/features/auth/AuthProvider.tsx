@@ -14,15 +14,16 @@ import {
   loginWithGoogle,
   loginWithGitHub,
   type AuthResponse,
+  type LoginResponse,
 } from "./authApi";
 
-export type AuthUser = { userId: number; email: string };
+export type AuthUser = { userId: number; email: string; username: string };
 
 type AuthContextValue = {
   user: AuthUser | null;
   accessToken: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
   githubLogin: (code: string) => Promise<void>;
@@ -36,32 +37,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
+  const applyLoginResponse = (res: LoginResponse) => {
+    setUser({ userId: res.userId, email: res.email, username: res.username });
+    setAccessToken(res.accessToken);
+  };
+
   const applyAuthResponse = (res: AuthResponse) => {
-    setUser({ userId: res.userId, email: res.email });
+    // The user state should already be set from a previous login
     setAccessToken(res.accessToken);
   };
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await apiLogin(email, password);
 
-    applyAuthResponse(res);
+    applyLoginResponse(res);
   }, []);
 
-  const register = useCallback(async (email: string, password: string) => {
-    await apiRegister(email, password);
+  const register = useCallback(async (username: string, email: string, password: string) => {
+    await apiRegister(username, email, password);
     const res = await apiLogin(email, password);
 
-    applyAuthResponse(res);
+    applyLoginResponse(res);
   }, []);
 
   const googleLogin = useCallback(async (idToken: string) => {
     const res = await loginWithGoogle(idToken);
-    applyAuthResponse(res);
+    applyLoginResponse(res);
   }, []);
 
   const githubLogin = useCallback(async (code: string) => {
     const res = await loginWithGitHub(code);
-    applyAuthResponse(res);
+    applyLoginResponse(res);
   }, []);
 
   const logout = useCallback(async () => {

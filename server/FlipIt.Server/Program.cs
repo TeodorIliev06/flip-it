@@ -93,6 +93,7 @@ app.MapPost("/auth/register",
         var (hash, salt) = passwordHasher.HashPassword(request.Password);
         var user = new User
         {
+            Username = request.Username,
             Email = email,
             PasswordSalt = salt,
             PasswordHash = hash
@@ -127,7 +128,7 @@ app.MapPost("/auth/login", async (LoginRequest request, FlipItDbContext db, Http
 
     await db.SaveChangesAsync();
 
-    var response = new AuthResponse(user.Id, user.Email, accessToken, expiryTime);
+    var response = new LoginResponse(user.Id, user.Email, user.Username, accessToken, expiryTime);
     var cookieOptions = new CookieOptions
     {
         HttpOnly = true,

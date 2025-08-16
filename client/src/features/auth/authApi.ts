@@ -29,14 +29,23 @@ export type AuthResponse = {
   accessTokenExpiresAt: string;
 };
 
+export type LoginResponse = {
+  userId: number;
+  email: string;
+  username: string;
+  accessToken: string;
+  expiryTime: string;
+};
+
 export async function register(
+  username: string,
   email: string,
   password: string
 ): Promise<{ id: number; email: string }> {
   const res = await fetch(`${BASE_URL}${API_ENDPOINTS.REGISTER}`, {
     method: "POST",
     headers: { "Content-Type": HTTP_HEADERS.CONTENT_TYPE },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, email, password }),
     credentials: "include",
   });
 
@@ -50,7 +59,7 @@ export async function register(
 export async function login(
   email: string,
   password: string
-): Promise<AuthResponse> {
+): Promise<LoginResponse> {
   const res = await fetch(`${BASE_URL}${API_ENDPOINTS.LOGIN}`, {
     method: "POST",
     headers: { "Content-Type": HTTP_HEADERS.CONTENT_TYPE },
@@ -65,7 +74,7 @@ export async function login(
   return res.json();
 }
 
-export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
+export async function loginWithGoogle(idToken: string): Promise<LoginResponse> {
   const res = await fetch(`${BASE_URL}${API_ENDPOINTS.GOOGLE_AUTH}`, {
     method: "POST",
     headers: { "Content-Type": HTTP_HEADERS.CONTENT_TYPE },
@@ -80,7 +89,7 @@ export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
   return res.json();
 }
 
-export async function loginWithGitHub(code: string): Promise<AuthResponse> {
+export async function loginWithGitHub(code: string): Promise<LoginResponse> {
   const res = await fetch(`${BASE_URL}${API_ENDPOINTS.GITHUB_AUTH}`, {
     method: "POST",
     headers: { "Content-Type": HTTP_HEADERS.CONTENT_TYPE },

@@ -24,6 +24,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const { login, register, googleLogin } = useAuth();
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -147,8 +148,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
       if (activeTab === "login") {
         await login(email, password);
       } else {
-        await register(email, password);
+        await register(username, email, password);
       }
+      setUsername("");
       setEmail("");
       setPassword("");
       onClose();
@@ -176,7 +178,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
         <div className="auth-modal-tabs">
           <button
-            onClick={() => setActiveTab("login")}
+            onClick={() => {
+              setActiveTab("login");
+              setUsername("");
+            }}
             className={`auth-modal-tab ${
               activeTab === "login" ? "active" : ""
             }`}
@@ -184,7 +189,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
             Sign In
           </button>
           <button
-            onClick={() => setActiveTab("register")}
+            onClick={() => {
+              setActiveTab("register");
+              setUsername("");
+            }}
             className={`auth-modal-tab ${
               activeTab === "register" ? "active" : ""
             }`}
@@ -248,6 +256,19 @@ const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="auth-modal-form">
+          {activeTab === "register" && (
+            <div>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="auth-modal-input"
+                required
+              />
+            </div>
+          )}
+
           <div>
             <input
               type="email"
@@ -273,7 +294,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
           <button
             type="submit"
-            disabled={loading || !email.trim() || !password.trim()}
+            disabled={
+              loading ||
+              !email.trim() ||
+              !password.trim() ||
+              (activeTab === "register" && !username.trim())
+            }
             className="auth-modal-submit"
           >
             {loading

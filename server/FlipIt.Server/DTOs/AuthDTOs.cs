@@ -2,8 +2,17 @@ namespace FlipIt.Server.DTOs;
 
 using System.Text.Json.Serialization;
 
-public record RegisterRequest(string Email, string Password);
+public record RegisterRequest(string Username, string Email, string Password);
+
 public record LoginRequest(string Email, string Password);
+public record LoginResponse(
+    int UserId,
+    string Email,
+    string Username,
+    string AccessToken,
+    DateTime ExpiryTime
+);
+
 public record GoogleAuthRequest(string IdToken);
 
 public record GitHubAuthRequest(string Code);
