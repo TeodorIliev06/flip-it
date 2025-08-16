@@ -11,6 +11,7 @@ interface SaveScoreFormProps {
   seconds: number;
   difficulty: string;
   gameMode: string;
+  onReset: () => void;
 }
 
 const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
@@ -18,6 +19,7 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
   seconds,
   difficulty,
   gameMode,
+  onReset,
 }) => {
   const { user, accessToken } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
@@ -36,6 +38,10 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
       // Guest user, show auth prompt
       setShowAuthPrompt(true);
     }
+  };
+
+  const handlePlayAgainClick = () => {
+    onReset();
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -72,9 +78,15 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
 
   return (
     <>
-      <button className="save-btn" onClick={handleSaveClick} disabled={saved}>
-        {saved ? "Saved!" : "Save"}
-      </button>
+      <div className="flex flex-row items-center gap-4">
+        <button className="save-btn" onClick={handleSaveClick} disabled={saved}>
+          {saved ? "Saved!" : "Save"}
+        </button>
+
+        <button className="play-again-btn" onClick={handlePlayAgainClick}>
+          Play Again
+        </button>
+      </div>
 
       {/* Auth Prompt Modal */}
       {showAuthPrompt && (
