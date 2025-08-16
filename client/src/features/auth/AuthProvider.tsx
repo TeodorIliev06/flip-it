@@ -12,6 +12,7 @@ import {
   refresh as apiRefresh,
   logout as apiLogout,
   loginWithGoogle,
+  loginWithGitHub,
   type AuthResponse,
 } from "./authApi";
 
@@ -24,6 +25,7 @@ type AuthContextValue = {
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
+  githubLogin: (code: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -57,6 +59,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     applyAuthResponse(res);
   }, []);
 
+  const githubLogin = useCallback(async (code: string) => {
+    const res = await loginWithGitHub(code);
+    applyAuthResponse(res);
+  }, []);
+
   const logout = useCallback(async () => {
     await apiLogout();
 
@@ -77,8 +84,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const value = useMemo(
-    () => ({ user, accessToken, login, register, logout, googleLogin }),
-    [user, accessToken, login, register, logout]
+    () => ({ user, accessToken, login, register, logout, googleLogin, githubLogin }),
+    [user, accessToken, login, register, logout, googleLogin, githubLogin]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

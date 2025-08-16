@@ -29,7 +29,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -106,6 +105,38 @@ const AuthModal: React.FC<AuthModalProps> = ({
     };
   }, [isOpen, googleLogin, onClose, onAuthSuccess]);
 
+  const handleGitHubSignIn = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!GITHUB_CLIENT_ID) {
+        setError("GitHub Client ID not configured");
+        return;
+      }
+
+      // Create state parameter for security and return URL tracking
+      const state = JSON.stringify({
+        returnUrl: window.location.origin,
+        timestamp: Date.now(),
+      });
+
+      const githubAuthUrl = new URL(GITHUB_OAUTH_URL);
+      githubAuthUrl.searchParams.append("client_id", GITHUB_CLIENT_ID);
+      githubAuthUrl.searchParams.append("redirect_uri", window.location.origin);
+      githubAuthUrl.searchParams.append("scope", GITHUB_OAUTH_SCOPES);
+      githubAuthUrl.searchParams.append("state", state);
+
+      sessionStorage.setItem("githubAuthReturnUrl", window.location.href);
+
+      window.location.href = githubAuthUrl.toString();
+    } catch (error) {
+      console.error("GitHub sign-in error:", error);
+      setError("GitHub sign-in failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
