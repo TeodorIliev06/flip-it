@@ -5,17 +5,20 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import GamePage from "./features/game/GamePage";
+import AuthModal from "./features/auth/AuthModal";
 import Leaderboard from "./features/leaderboard/Leaderboard";
 
 import { useAuth } from "./features/auth/AuthProvider";
 
 function App() {
   const { user, logout, githubLogin } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Handle GitHub OAuth callback
   useEffect(() => {
@@ -72,16 +75,60 @@ function App() {
             <div className="flex gap-4 items-center">
               {user ? (
                 <>
-                  <span className="text-sm text-gray-300">{user.email}</span>
-                  <button
-                    onClick={logout}
-                    className="px-3 py-1 bg-gray-800 rounded hover:bg-gray-700 transition-colors duration-200"
-                  >
-                    Logout
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm text-gray-300 font-medium">
+                        Welcome, {user.username}
+                      </span>
+                    </div>
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-105"
+                      title="Sign out"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16,17 21,12 16,7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      Sign Out
+                    </button>
+                  </div>
                 </>
               ) : (
-                <span className="text-sm text-gray-400">Guest</span>
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm text-gray-300 font-medium">
+                      Guest
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-105"
+                    title="Sign in to save scores"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10,17 15,12 10,7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    Sign In
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -93,6 +140,12 @@ function App() {
           </Routes>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={() => setIsAuthModalOpen(false)}
+      />
     </>
   );
 }
