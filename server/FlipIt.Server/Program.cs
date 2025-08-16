@@ -51,11 +51,11 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
-    // CSP for Google Identity Services
+    // CSP for Google Identity Services and GitHub OAuth
     context.Response.Headers.Append("Content-Security-Policy",
         "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; " +
         "frame-src 'self' https://accounts.google.com; " +
-        "connect-src 'self' https://accounts.google.com https://localhost:7299");
+        "connect-src 'self' https://accounts.google.com https://api.github.com https://github.com https://localhost:7299");
 
     await next();
 });
@@ -238,6 +238,133 @@ app.MapPost("/auth/google", async (
     catch (Exception e)
     {
         Console.WriteLine(e.ToString());
+        throw;
+    }
+}).WithTags("Auth");
+
+app.MapPost("/auth/github", async (
+    GitHubAuthRequest request,
+    FlipItDbContext db,
+    ITokenService tokenService,
+    IOptions<JwtOptions> jwtOptions,
+    HttpResponse http,
+    IConfiguration config,
+    HttpContext context) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            return Results.BadRequest("Missing authorization code");
+        }
+
+        var clientId = config.GetValue<string>("GitHub:ClientId");
+        var clientSecret = config.GetValue<string>("GitHub:ClientSecret");
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+        {
+            return Results.Problem("GitHub OAuth not configured");
+        }
+
+        // Step 1: Exchange code for access token
+        using var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "FlipIt-App");
+
+        var redirectUri = appOrigin;
+
+        // GitHub expects form-encoded data, not JSON
+        var formData = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("client_id", clientId),
+            new KeyValuePair<string, string>("client_secret", clientSecret),
+            new KeyValuePair<string, string>("code", request.Code),
+            new KeyValuePair<string, string>("redirect_uri", redirectUri!)
+        });
+
+        var tokenResponse = await httpClient
+            .PostAsync("https://github.com/login/oauth/access_token", formData);
+
+        if (!tokenResponse.IsSuccessStatusCode)
+        {
+            return Results.Problem("Failed to get access token from GitHub");
+        }
+
+        var tokenData = await tokenResponse.Content
+            .ReadFromJsonAsync<GitHubAccessTokenResponse>();
+
+        if (tokenData?.AccessToken == null)
+        {
+            return Results.Problem($"GitHub OAuth failed: {tokenData?.Error ?? "Unknown error"}");
+        }
+
+        // Step 2: Get user info
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenData.AccessToken);
+
+        var userResponse = await httpClient.GetAsync("https://api.github.com/user");
+        if (!userResponse.IsSuccessStatusCode)
+        {
+            return Results.Problem("Failed to get user info from GitHub");
+        }
+
+        var userInfo = await userResponse.Content.ReadFromJsonAsync<GitHubUserInfo>();
+        string? githubEmail = userInfo?.Email;
+
+        // If email is null, try to get it from the emails endpoint
+        if (string.IsNullOrEmpty(githubEmail))
+        {
+            Console.WriteLine("Email not found in user info, trying emails endpoint...");
+            var emailsResponse = await httpClient.GetAsync("https://api.github.com/user/emails");
+            if (emailsResponse.IsSuccessStatusCode)
+            {
+                var emails = await emailsResponse.Content.ReadFromJsonAsync<GitHubEmail[]>();
+                githubEmail = emails?.FirstOrDefault(e => e.Primary)?.Email;
+                Console.WriteLine($"Found email from emails endpoint: {githubEmail}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(githubEmail))
+        {
+            return Results.Problem("No email found in GitHub user info. GitHub users can have private emails.");
+        }
+
+        // Step 3: Find or create user
+        var email = githubEmail.Trim().ToLowerInvariant();
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null)
+        {
+            user = new User
+            {
+                Email = email,
+                PasswordHash = string.Empty,
+                PasswordSalt = string.Empty
+            };
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+        }
+
+        // Step 4: Create JWT tokens
+        var (accessToken, accessExpires) = tokenService.CreateAccessToken(user);
+        var (refreshToken, refreshExpires) = tokenService.CreateRefreshToken();
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiresAt = refreshExpires;
+        await db.SaveChangesAsync();
+
+        http.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = jwtOptions.Value.CookieSecure,
+            SameSite = SameSiteMode.None,
+            Expires = refreshExpires
+        });
+
+        return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"GitHub auth error: {e}");
         throw;
     }
 }).WithTags("Auth");

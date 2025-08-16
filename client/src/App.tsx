@@ -1,11 +1,55 @@
-import { Routes, Route, Link } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import { useEffect } from "react";
 
 import GamePage from "./features/game/GamePage";
 import Leaderboard from "./features/leaderboard/Leaderboard";
+
 import { useAuth } from "./features/auth/AuthProvider";
 
 function App() {
-  const { user, logout } = useAuth();
+  const { user, logout, githubLogin } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle GitHub OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const code = urlParams.get("code");
+    const state = urlParams.get("state");
+
+    if (code) {
+      const cleanUrl = window.location.origin;
+      window.history.replaceState({}, document.title, cleanUrl);
+
+      githubLogin(code)
+        .then(() => {
+          console.log("GitHub login successful, auth state updated");
+          let returnUrl = "/";
+          if (state) {
+            try {
+              const stateData = JSON.parse(decodeURIComponent(state));
+              const url = new URL(stateData.returnUrl);
+
+              returnUrl = url.pathname || "/";
+            } catch (e) {
+              console.error("Failed to parse state:", e);
+            }
+          }
+          navigate(returnUrl);
+        })
+        .catch((error) => {
+          console.error("GitHub login failed:", error);
+          navigate("/");
+        });
+    }
+  }, [location.search, navigate]);
+
   return (
     <>
       <div className="min-h-screen w-screen bg-gray-900">
