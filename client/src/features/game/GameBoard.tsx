@@ -15,7 +15,6 @@ type GameBoardProps = {
   setTimerActive: React.Dispatch<React.SetStateAction<boolean>>;
   timerActive: boolean;
   onGameOver: () => void;
-  onReset: () => void;
   onMove: () => void;
   moves: number;
   seconds: number;
@@ -143,12 +142,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {gameOver && (
         <div className="mt-6 flex flex-col items-center gap-4">
           <SaveScoreForm
-              moves={moves}
-              seconds={seconds}
-              difficulty={difficulty}
-              gameMode={mode}
-              onReset={reset}
-            />
+            moves={moves}
+            seconds={seconds}
+            difficulty={difficulty}
+            gameMode={mode}
+            onReset={reset}
+          />
         </div>
       )}
     </div>
