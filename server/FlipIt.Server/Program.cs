@@ -1,15 +1,11 @@
-using System.Security.Claims;
-
-using Google.Apis.Auth;
-using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
 using FlipIt.Server.Data;
-using FlipIt.Server.DTOs;
-using FlipIt.Server.Models;
 using FlipIt.Server.Options;
 using FlipIt.Server.Services;
 using FlipIt.Server.Extensions;
+using FlipIt.Server.Services.Auth;
+using FlipIt.Server.Services.Leaderboard;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +41,8 @@ builder.Services.AddCors(cfg =>
 
 builder.Services.AddJwtAuthentication(jwtOptions);
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
 var app = builder.Build();
