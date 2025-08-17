@@ -32,16 +32,36 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
 
   const handleSaveClick = () => {
     if (user) {
-      // User is logged in, show save modal
-      setModalOpen(true);
+      handleSaveDirect();
     } else {
-      // Guest user, show auth prompt
       setShowAuthPrompt(true);
     }
   };
 
   const handlePlayAgainClick = () => {
     onReset();
+  };
+
+  const handleSaveDirect = async () => {
+    if (!user) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      await postScore({
+        playerName: user.username,
+        moves,
+        timeInSeconds: seconds,
+        difficulty,
+        gameMode,
+        accessToken,
+      });
+      setSaved(true);
+    } catch (err) {
+      setError("Failed to save score. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -80,7 +100,7 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
     <>
       <div className="flex flex-row items-center gap-4">
         <button className="save-btn" onClick={handleSaveClick} disabled={saved}>
-          {saved ? "Saved!" : "Save"}
+          {saved ? "Saved!" : user ? "Save Score" : "Save"}
         </button>
 
         <button className="play-again-btn" onClick={handlePlayAgainClick}>
@@ -88,7 +108,6 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
         </button>
       </div>
 
-      {/* Auth Prompt Modal */}
       {showAuthPrompt && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -123,25 +142,16 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
         </div>
       )}
 
-      {/* Save Score Modal */}
-      {modalOpen && (
+      {/* Show modal for guests only */}
+      {modalOpen && !user && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2 className="modal-title">
-              {user ? "Save Your Score" : "Save as Guest"}
-            </h2>
-            {user && (
-              <p className="text-center text-gray-300 mb-4">
-                Saving as {user.email}
-              </p>
-            )}
+            <h2 className="modal-title">Save as Guest</h2>
             <form onSubmit={handleSave} className="modal-form">
               <input
                 type="text"
                 className="modal-input"
-                placeholder={
-                  user ? "Enter your name" : "Enter your name (guest)"
-                }
+                placeholder="Enter your name (guest)"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 required
@@ -175,7 +185,6 @@ const SaveScoreForm: React.FC<SaveScoreFormProps> = ({
         </div>
       )}
 
-      {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
