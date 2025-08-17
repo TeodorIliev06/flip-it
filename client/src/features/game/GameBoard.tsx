@@ -51,7 +51,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   setTimerActive,
   timerActive,
   onGameOver,
-  onReset,
   onMove,
   moves,
   seconds,
@@ -143,24 +142,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       {gameOver && (
         <div className="mt-6 flex flex-col items-center gap-4">
-          <div className="flex flex-row items-center gap-4">
-            <SaveScoreForm
+          <SaveScoreForm
               moves={moves}
               seconds={seconds}
               difficulty={difficulty}
               gameMode={mode}
+              onReset={reset}
             />
-
-            <button
-              className="px-4 py-2 bg-green-500 text-white rounded"
-              onClick={() => {
-                reset();
-                onReset();
-              }}
-            >
-              Play Again
-            </button>
-          </div>
         </div>
       )}
     </div>

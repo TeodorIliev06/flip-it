@@ -100,3 +100,14 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.play-again-btn {
+  background: #00c950;
+  color: #fff;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
