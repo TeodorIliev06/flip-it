@@ -76,27 +76,25 @@
 
 .auth-modal-google-btn {
   width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: #fff;
+  padding: 12px;
+  background-color: #fff;
   color: #1f2937;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 8px;
+  transition: background-color 0.2s;
 }
 
 .auth-modal-google-btn:hover:not(:disabled) {
-  background: #f3f4f6;
+  background-color: #f9fafb;
 }
 
 .auth-modal-google-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
