@@ -32,7 +32,6 @@ function App() {
 
       githubLogin(code)
         .then(() => {
-          console.log("GitHub login successful, auth state updated");
           let returnUrl = "/";
           if (state) {
             try {

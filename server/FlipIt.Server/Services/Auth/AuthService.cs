@@ -102,15 +102,19 @@ public class AuthService(
             {
                 return Results.BadRequest("Missing idToken");
             }
+
             var clientId = config.GetValue<string>("Google:ClientId");
+
             if (string.IsNullOrWhiteSpace(clientId))
             {
                 return Results.Problem("Server Google ClientId is not configured");
             }
+
             Google.Apis.Auth.GoogleJsonWebSignature.Payload payload;
             try
             {
-                payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(request.IdToken, new Google.Apis.Auth.GoogleJsonWebSignature.ValidationSettings
+                payload = await Google.Apis.Auth.GoogleJsonWebSignature
+                    .ValidateAsync(request.IdToken, new Google.Apis.Auth.GoogleJsonWebSignature.ValidationSettings
                 {
                     Audience = new[] { clientId }
                 });
@@ -119,30 +123,41 @@ public class AuthService(
             {
                 return Results.Unauthorized();
             }
+
             var email = (payload.Email ?? string.Empty)
                 .Trim()
                 .ToLowerInvariant();
+
             if (string.IsNullOrEmpty(email))
             {
                 return Results.Unauthorized();
             }
+
             var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
             if (user == null)
             {
+                var username = email.Split('@')[0];
+
                 user = new User
                 {
+                    Username = username,
                     Email = email,
                     PasswordHash = string.Empty,
                     PasswordSalt = string.Empty
                 };
+
                 db.Users.Add(user);
                 await db.SaveChangesAsync();
             }
             var (accessToken, accessExpires) = tokenService.CreateAccessToken(user);
             var (refreshToken, refreshExpires) = tokenService.CreateRefreshToken();
+
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiresAt = refreshExpires;
+
             await db.SaveChangesAsync();
+
             http.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
@@ -150,7 +165,8 @@ public class AuthService(
                 SameSite = SameSiteMode.None,
                 Expires = refreshExpires
             });
-            return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
+
+            return Results.Ok(new LoginResponse(user.Id, user.Email, user.Username, accessToken, accessExpires));
         }
         catch (Exception e)
         {
@@ -167,16 +183,20 @@ public class AuthService(
             {
                 return Results.BadRequest("Missing authorization code");
             }
+
             var clientId = config.GetValue<string>("GitHub:ClientId");
             var clientSecret = config.GetValue<string>("GitHub:ClientSecret");
             var redirectUri = config.GetValue<string>("GitHub:RedirectUri");
+
             if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
             {
                 return Results.Problem("GitHub OAuth not configured");
             }
+
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             httpClient.DefaultRequestHeaders.Add("User-Agent", "FlipIt-App");
+
             var formData = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("client_id", clientId),
@@ -184,57 +204,76 @@ public class AuthService(
                 new KeyValuePair<string, string>("code", request.Code),
                 new KeyValuePair<string, string>("redirect_uri", redirectUri!)
             });
+
             var tokenResponse = await httpClient
                 .PostAsync("https://github.com/login/oauth/access_token", formData);
+
             if (!tokenResponse.IsSuccessStatusCode)
             {
                 return Results.Problem("Failed to get access token from GitHub");
             }
+
             var tokenData = await tokenResponse.Content
                 .ReadFromJsonAsync<GitHubAccessTokenResponse>();
+
             if (tokenData?.AccessToken == null)
             {
                 return Results.Problem($"GitHub OAuth failed: {tokenData?.Error ?? "Unknown error"}");
             }
+
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenData.AccessToken);
             var userResponse = await httpClient.GetAsync("https://api.github.com/user");
+
             if (!userResponse.IsSuccessStatusCode)
             {
                 return Results.Problem("Failed to get user info from GitHub");
             }
+
             var userInfo = await userResponse.Content.ReadFromJsonAsync<GitHubUserInfo>();
             string? githubEmail = userInfo?.Email;
+
             if (string.IsNullOrEmpty(githubEmail))
             {
                 var emailsResponse = await httpClient.GetAsync("https://api.github.com/user/emails");
+
                 if (emailsResponse.IsSuccessStatusCode)
                 {
                     var emails = await emailsResponse.Content.ReadFromJsonAsync<GitHubEmail[]>();
                     githubEmail = emails?.FirstOrDefault(e => e.Primary)?.Email;
                 }
             }
+
             if (string.IsNullOrEmpty(githubEmail))
             {
                 return Results.Problem("No email found in GitHub user info. GitHub users can have private emails.");
             }
+
             var email = githubEmail.Trim().ToLowerInvariant();
             var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
             if (user == null)
             {
+                var username = userInfo?.Login ?? email.Split('@')[0];
+
                 user = new User
                 {
+                    Username = username,
                     Email = email,
                     PasswordHash = string.Empty,
                     PasswordSalt = string.Empty
                 };
+
                 db.Users.Add(user);
                 await db.SaveChangesAsync();
             }
+
             var (accessToken, accessExpires) = tokenService.CreateAccessToken(user);
             var (refreshToken, refreshExpires) = tokenService.CreateRefreshToken();
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiresAt = refreshExpires;
+
             await db.SaveChangesAsync();
+
             http.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
@@ -242,7 +281,8 @@ public class AuthService(
                 SameSite = SameSiteMode.None,
                 Expires = refreshExpires
             });
-            return Results.Ok(new AuthResponse(user.Id, user.Email, accessToken, accessExpires));
+
+            return Results.Ok(new LoginResponse(user.Id, user.Email, user.Username, accessToken, accessExpires));
         }
         catch (Exception e)
         {
