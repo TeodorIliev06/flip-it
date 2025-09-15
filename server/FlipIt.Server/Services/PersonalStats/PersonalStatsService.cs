@@ -9,6 +9,9 @@ namespace FlipIt.Server.Services.PersonalStats;
 public class PersonalStatsService(
     FlipItDbContext db) : IPersonalStatsService
 {
+    private static bool IsDifficultySupported(string gameMode)
+        => string.Equals(gameMode, "Classic", StringComparison.OrdinalIgnoreCase);
+
     public async Task<IResult> GetPersonalStatsAsync(int userId)
     {
         try
@@ -51,11 +54,15 @@ public class PersonalStatsService(
     {
         try
         {
+            var normalizedDifficulty = IsDifficultySupported(request.GameMode)
+                ? request.Difficulty
+                : null;
+
             var existingBest = await db.PersonalBestScores
                 .FirstOrDefaultAsync(pb => 
                     pb.UserId == userId && 
                     pb.GameMode == request.GameMode && 
-                    pb.Difficulty == request.Difficulty);
+                    pb.Difficulty == normalizedDifficulty);
 
             var isNewBest = false;
             var isNewRecord = false;
@@ -66,7 +73,7 @@ public class PersonalStatsService(
                 {
                     UserId = userId,
                     GameMode = request.GameMode,
-                    Difficulty = request.Difficulty,
+                    Difficulty = normalizedDifficulty,
                     BestMoves = request.Moves,
                     BestTimeInSeconds = request.TimeInSeconds,
                     AchievedAt = DateTime.UtcNow,
@@ -119,11 +126,15 @@ public class PersonalStatsService(
     {
         try
         {
+            var normalizedDifficulty = IsDifficultySupported(gameMode)
+                ? difficulty
+                : null;
+
             var personalBest = await db.PersonalBestScores
                 .FirstOrDefaultAsync(pb => 
                     pb.UserId == userId && 
                     pb.GameMode == gameMode && 
-                    pb.Difficulty == difficulty);
+                    pb.Difficulty == normalizedDifficulty);
 
             if (personalBest == null)
             {
