@@ -85,5 +85,6 @@ app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapScoreEndpoints();
 app.MapLeaderboardEndpoints();
+app.MapPersonalStatsEndpoints();
 
 app.Run();
