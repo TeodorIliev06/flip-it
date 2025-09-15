@@ -6,6 +6,7 @@ using FlipIt.Server.Services;
 using FlipIt.Server.Extensions;
 using FlipIt.Server.Services.Auth;
 using FlipIt.Server.Services.Leaderboard;
+using FlipIt.Server.Services.PersonalStats;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,7 @@ builder.Services.AddJwtAuthentication(jwtOptions);
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
+builder.Services.AddScoped<IPersonalStatsService, PersonalStatsService>();
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
 var app = builder.Build();
